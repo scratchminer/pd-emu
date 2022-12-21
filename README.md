@@ -4,7 +4,7 @@
 To (eventually) run, you will need:
 - **For graphics, sound, etc.:** [pygame/pygame](https://github.com/pygame/pygame) (no changes needed)
 - **For emulation of games written in C:** [qilingframework/qiling](https://github.com/qilingframework/qiling) (no changes needed)
-- **For emulation of games written in Lua:** [scoder/lupa](https://github.com/scoder/lupa) (custom build with my forked Lua)
+- **For emulation of games written in Lua:** [scratchminer/lupa](https://github.com/scratchminer/lupa) (forked version with custom build of Lua)
 - **For parsing Playdate's Lua headers:** my fork of Lua 5.4.0 which adds Playdate support (will be added soon)
 
 ## Running
