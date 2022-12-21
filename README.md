@@ -21,3 +21,6 @@ Tested and working for all the system apps in the 1.12.3 SDK (latest version as 
 
 ## Decompiling the Lua files
 See my fork of [unluac](https://sourceforge.net/p/unluac/) for instructions.
+
+
+Not affiliated with Panic at all, just a neat little side project I've been doing for a while.
