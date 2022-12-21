@@ -1,5 +1,13 @@
 # pd-emu - a Panic Playdate emulator
 
+## ...but why?
+Yes, Panic already provides a piece of software called Playdate Simulator, but...
+- It's geared towards testing your own games rather than playing other people's.
+- It can't run builds of games written in C.
+- It doesn't allow communication via the simulated Playdate's USB port.
+
+I decided to try and fix this with new, _open-source_ software.
+
 ## Dependencies
 To (eventually) run, you will need:
 - **For graphics, sound, etc.:** [pygame/pygame](https://github.com/pygame/pygame) (no changes needed)
