@@ -4,8 +4,8 @@
 To (eventually) run, you will need:
 - **For graphics, sound, etc.:** [pygame/pygame](https://github.com/pygame/pygame) (no changes needed)
 - **For emulation of games written in C:** [qilingframework/qiling](https://github.com/qilingframework/qiling) (no changes needed)
-- **For emulation of games written in Lua:** [scratchminer/lupa](https://github.com/scratchminer/lupa) (forked version with custom build of Lua)
-- **For parsing Playdate's Lua headers:** my fork of Lua 5.4.0 which adds Playdate support (will be added soon)
+- **For emulation of games written in Lua:** [scoder/lupa](https://github.com/scratchminer/lupa) (forked version with custom build of Lua)
+- **For parsing Playdate's Lua headers:** [lua/lua](https://github.com/scratchminer/lua54) (forked version with header and opcode patches)
 
 ## Running
 You can't actually run this emulator now (since I have yet to add the Playdate API).
@@ -20,7 +20,9 @@ To dump a PDX:
 Tested and working for all the system apps in the 1.12.3 SDK (latest version as of this writing).
 
 ## Decompiling the Lua files
-See my fork of [unluac](https://sourceforge.net/p/unluac/) for instructions.
+See [my fork of unluac](https://github.com/scratchminer/unluac) for instructions.
 
 --------------------
+2022 scratchminer
+
 Not affiliated with Panic at all, just a neat little side project I've been doing for a while.
