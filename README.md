@@ -1,4 +1,4 @@
-# pd-emu -- a Panic Playdate emulator
+# pd-emu - a Panic Playdate emulator
 
 ## Dependencies
 To (eventually) run, you will need:
