@@ -33,6 +33,6 @@ class PDLuaBytecodeFile(PDFile):
 if __name__ == "__main__":
 	filename = argv[1]
 	lua_file = PDLuaBytecodeFile(filename)
-	if lua_file.fallback: print("[WARNING] This file is Lua 5.4.0-beta bytecode. You'll need unluac or a similar program to decompile this.")
+	print("[WARNING] This file is Playdate Lua bytecode. You'll need a fork of unluac to decompile this.")
 	with open(filename + lua_file.NONPD_FILE_EXT, "wb") as f:
 		f.write(lua_file.to_nonpdfile())
