@@ -6,7 +6,7 @@ from pdfile import PDFile
 def _filter(obj, attr_name, setting):
 	raise AttributeError
 
-RUNTIME = LuaRuntime(register_builtins=False, attribute_filter=_filter, unpack_returned_tuples=False)
+RUNTIME = LuaRuntime(register_builtins=False, register_eval=False, attribute_filter=_filter, unpack_returned_tuples=False)
 
 class PDLuaBytecodeFile(PDFile):
 	
