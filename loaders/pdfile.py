@@ -1,4 +1,5 @@
-import io, zlib
+from io import BytesIO
+from zlib import decompress
 from struct import unpack, error as struct_error
 
 class PDFile:
@@ -9,7 +10,7 @@ class PDFile:
 			with open(filename, mode) as f: self.data = f.read()
 		else: 
 			self.data = filename
-		self.handle = io.BytesIO(self.data)
+		self.handle = BytesIO(self.data)
 		
 		if not skip_magic:
 			if not hasattr(self, "MAGIC2") and self.readbin(len(self.MAGIC)) != self.MAGIC: raise ValueError("incorrect magic number for Playdate file")
@@ -24,27 +25,23 @@ class PDFile:
 	def decompress(self, compressed=True):
 		self.compressed = compressed
 		if self.compressed:
-			self.zlib_data = zlib.decompress(self.handle.read())
+			self.zlib_data = decompress(self.handle.read())
 			self.handle.close()
-			self.handle = io.BytesIO(self.zlib_data)
+			self.handle = BytesIO(self.zlib_data)
 	def readbin(self, numbytes=-1):
 		return self.handle.read(numbytes)
 	def readu8(self):
-		try: return unpack("<B", self.readbin(1))[0]
-		except struct_error: return -1
+		return unpack("<B", self.readbin(1))[0]
 	def reads8(self):
 		return unpack("<b", self.readbin(1))[0]
 	def readu16(self):
-		try: return unpack("<H", self.readbin(2))[0]
-		except struct_error: return -1
+		return unpack("<H", self.readbin(2))[0]
 	def reads16(self):
 		return unpack("<h", self.readbin(2))[0]
 	def readu24(self):
-		try: return int.from_bytes(self.readbin(3), byteorder="little")
-		except struct_error: return -1
+		return int.from_bytes(self.readbin(3), byteorder="little")
 	def readu32(self):
-		try: return unpack("<L", self.readbin(4))[0]
-		except struct_error: return -1
+		return unpack("<L", self.readbin(4))[0]
 	def readstr(self):
 		b = bytes()
 		while True:

@@ -120,13 +120,12 @@ class PDZipFile(PDFile):
 			
 			self.align(4)
 			
-			idx = self.tell()
-			
 			data = self.readbin(file_length)
 			
 			extra_metadata = bytes()
 			if compressed:
-				if data[4] != 0x78:
+				if filetype == PDZ_FILE_AUDIO:
+					# Audio files have the sample rate and audio format uncompressed out front
 					data = data[:4] + decompress(data[8:])
 				else: data = decompress(data[4:])
 			
@@ -146,3 +145,29 @@ if __name__ == "__main__":
 	if len(argv) > 2: dump_loc = abspath(argv[2])
 	
 	pdz_file.dump_files(dump_loc)
+
+# From jaames/playdate-reverse-engineering, and also some of my own research
+
+# FILE HEADER (length 16)
+# 0: char[12]: constant "Playdate PDZ"
+# (4 bytes of zeros)
+
+# FILE ENTRY
+# uint8: file bitflags
+# 		flags & 0x80 = file is compressed
+# 		flags & 0x7F = file type
+# 			0 = none
+# 			1 = Playdate Lua bytecode
+# 			2 = image (PDI)
+# 			3 = image table (PDT)
+# 			4 = video (PDV)
+# 			5 = audio (PDA)
+# 			6 = strings (PDS)
+# 			7 = font (PFT)
+# uint24: total data length
+# char *: filename, null-terminated
+# (padding to align to a multiple of 4 bytes)
+# uint24: audio sample rate in Hz (present only if the file is a compressed audio file)
+# enum SoundFormat: audio data format (present only if the file is a compressed audio file)
+# uint32: data length when decompressed (if the data is compressed, this is present and included in the data length)
+# (entry data)

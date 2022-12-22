@@ -70,3 +70,24 @@ if __name__ == "__main__":
 	for i in range(len(img_list)):
 		with open(f"{filename}-frame{i}" + imt_file.NONPD_FILE_EXT, "wb") as f:
 			f.write(img_list[i])
+
+# From jaames/playdate-reverse-engineering
+
+# FILE HEADER (length 16)
+# 0: char[12]: constant "Playdate IMT"
+# 12: uint32: file bitflags
+# 		flags & 0x80000000 = file is compressed
+
+# COMPRESSED FILE HEADER (length 16, inserted after the file header if the file is compressed)
+# 0: uint32: decompressed data size in bytes
+# 4: uint32: width of the first cell
+# 8: uint32: height of the first cell
+# 12: uint32: total number of cells
+
+# TABLE HEADER (length 4):
+# 0: uint16: total number of cells
+# 2: uint16: number of cells on each row
+
+# (offsets for cells are uint32)
+
+# (data, see image format)

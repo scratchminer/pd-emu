@@ -110,3 +110,34 @@ if __name__ == "__main__":
 	vid_file = PDVideoFile(filename)
 	with open(filename + vid_file.NONPD_FILE_EXT, "wb") as f:
 		f.write(vid_file.to_giffile())
+
+# From jaames/playdate-reverse-engineering
+
+# FILE HEADER (length 28)
+# 0: char[12]: constant "Playdate VID"
+# (4 bytes of zeros)
+# 16: uint16: number of frames
+# (2 bytes of zeros)
+# 20: float32: framerate in frames per second
+# 24: uint16: width of each frame
+# 26: uint16: height of each frame
+
+# (offsets for frames are uint32)
+# 		offset >> 2 = frame offset in bytes
+# 		offset & 0x3 = frame type
+# 			0 = end of file
+# 			1 = Standalone bitmap frame
+# 			2 = Frame based on previous frame
+# 			3 = Frame based on standalone bitmap frame
+
+# FRAME TYPES (all compressed separately)
+# Type 1: I-frame
+# 1-bit pixel map (0 = black, 1 = white)
+
+# Type 2: P-frame
+# 1-bit change map (0 = no change since previous frame, 1 = pixel flipped since previous frame)
+
+# Type 3: Compound
+# uint16: length of pixel map
+# 1-bit pixel map (0 = black, 1 = white)
+# 1-bit change map (0 = no change from pixel map, 1 = pixel flipped from pixel map)
