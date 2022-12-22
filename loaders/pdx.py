@@ -1,6 +1,5 @@
 from os import mkdir, sep as PATHSEP, walk
 from os.path import abspath, basename, dirname, isdir, join as joinpath, normpath, splitext, relpath
-import io
 from sys import argv
 
 from pdfile import PDFile

@@ -10,6 +10,7 @@ I decided to try and fix this with new, _open-source_ software.
 
 ## Dependencies
 To (eventually) run, you will need:
+- **For dumping PNG/GIF images:** [python-pillow/Pillow](https://github.com/python-pillow/Pillow) (no changes needed)
 - **For graphics, sound, etc.:** [pygame/pygame](https://github.com/pygame/pygame) (no changes needed)
 - **For emulation of games written in C:** [qilingframework/qiling](https://github.com/qilingframework/qiling) (no changes needed)
 - **For emulation of games written in Lua:** [scoder/lupa](https://github.com/scratchminer/lupa) (forked version with custom build of Lua)

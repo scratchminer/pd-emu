@@ -1,6 +1,6 @@
 from PIL import Image, GifImagePlugin
 
-import io
+from io import BytesIO
 from sys import argv
 from struct import unpack
 from zlib import decompress
@@ -95,7 +95,7 @@ class PDVideoFile(PDFile):
 		for img in self.frame_table:
 			pil_img_list.append(img.pil_img.convert(dither=Image.Dither.NONE))
 		
-		fh = io.BytesIO()
+		fh = BytesIO()
 		pil_img_list[0].save(fh, format="GIF", save_all=True, append_images=pil_img_list[1:], duration=frame_duration)
 		self.giffile = fh.getvalue()
 		fh.close()

@@ -1,4 +1,4 @@
-import json
+from json import dumps
 from sys import argv
 
 from pdfile import PDFile
@@ -35,7 +35,7 @@ class PDStringsFile(PDFile):
 		return self.string_table
 	
 	def to_jsonfile(self):
-		self.jsonfile = bytes(json.dumps(self.string_table, indent="\t"), "utf-8")
+		self.jsonfile = bytes(dumps(self.string_table, indent="\t"), "utf-8")
 		return self.jsonfile
 	
 	def to_nonpdfile(self):
