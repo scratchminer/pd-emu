@@ -3,13 +3,14 @@ from os.path import abspath, basename, join as joinpath, normpath, splitext
 from sys import argv
 from zlib import decompress
 
-from pdfile import PDFile
-from pda import PDAudioFile
-from pdi import PDImageFile
-from pds import PDStringsFile
-from pdt import PDImageTableFile
-from pdv import PDVideoFile
-from pft import PDFontFile
+from .pdfile import PDFile
+from .pdlua import PDLuaBytecodeFile
+from .pda import PDAudioFile
+from .pdi import PDImageFile
+from .pds import PDStringsFile
+from .pdt import PDImageTableFile
+from .pdv import PDVideoFile
+from .pft import PDFontFile
 
 PDZ_FILE_NONE = 0
 PDZ_FILE_LUABYTECODE = 1
@@ -21,19 +22,19 @@ PDZ_FILE_STRINGS = 6
 PDZ_FILE_FONT = 7
 
 class PDZipEntry:
-	def __init__(self, filename, filetype=PDZ_FILE_NONE, data=bytes()):
+	def __init__(self, parent_pdz, filename, filetype=PDZ_FILE_NONE, data=bytes()):
 		
 		self.filename = filename
 		self.filetype = filetype
 		self.is_directory = False
+		self.parent_pdz = parent_pdz
 		
 		if filetype == PDZ_FILE_NONE:
 			self.data = {}
 			self.is_directory = True
 			self.extension = ""
 		elif filetype == PDZ_FILE_LUABYTECODE:
-			self.data = data
-			self.extension = ".luac"
+			self.data = PDLuaBytecodeFile(data, parent_pdz)
 		elif filetype == PDZ_FILE_IMAGE:
 			self.data = PDImageFile(b"\0\0\0\0" + data, skip_magic=True)
 		elif filetype == PDZ_FILE_IMAGETABLE:
@@ -62,7 +63,7 @@ class PDZipEntry:
 					directory.add_file(path[i], PDZ_FILE_NONE)
 					directory = directory.data[path[i]]
 			
-			directory.data[path[-1]] = PDZipEntry(path[-1], filetype, data)
+			directory.data[path[-1]] = PDZipEntry(self.parent_pdz, path[-1], filetype, data)
 		else: raise ValueError("Entry not a directory")
 
 	def get_file(self, filename):
@@ -107,7 +108,8 @@ class PDZipFile(PDFile):
 		super().__init__(filename, skip_magic)
 		
 		self.advance(4)
-		self.root_directory = PDZipEntry("", PDZ_FILE_NONE)
+		self.root_directory = PDZipEntry(self, "", PDZ_FILE_NONE)
+		self.imported_files = []
 		
 		flags = self.readu8()
 		
@@ -131,6 +133,11 @@ class PDZipFile(PDFile):
 			
 			self.root_directory.add_file(filename, filetype, data)
 			flags = self.readu8()
+	
+	def import_func(self, path):
+		if path not in self.imported_files:
+			self.imported_files.append(path)
+			self.get_file(path).execute()
 			
 	def get_file(self, path):
 		return self.root_directory.get_file(path)

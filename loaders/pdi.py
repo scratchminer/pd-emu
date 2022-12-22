@@ -7,7 +7,7 @@ from math import ceil
 from struct import pack
 from sys import argv
 
-from pdfile import PDFile
+from .pdfile import PDFile
 
 PDI_PALETTE = (
 	(0x32, 0x2f, 0x28),

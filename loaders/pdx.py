@@ -2,14 +2,14 @@ from os import mkdir, sep as PATHSEP, walk
 from os.path import abspath, basename, dirname, isdir, join as joinpath, normpath, splitext, relpath
 from sys import argv
 
-from pdfile import PDFile
-from pda import PDAudioFile
-from pdi import PDImageFile
-from pds import PDStringsFile
-from pdt import PDImageTableFile
-from pdv import PDVideoFile
-from pft import PDFontFile
-from pdz import PDZipFile
+from .pdfile import PDFile
+from .pda import PDAudioFile
+from .pdi import PDImageFile
+from .pds import PDStringsFile
+from .pdt import PDImageTableFile
+from .pdv import PDVideoFile
+from .pft import PDFontFile
+from .pdz import PDZipFile
 
 class StrayFile(PDFile):
 	MAGIC = b""

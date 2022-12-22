@@ -1,12 +1,10 @@
-from lupa import LuaRuntime
+from api.pdapi import RUNTIME
 from sys import argv
 
-from pdfile import PDFile
+from .pdfile import PDFile
 
 def _filter(obj, attr_name, setting):
 	raise AttributeError
-
-RUNTIME = LuaRuntime(register_builtins=False, register_eval=False, attribute_filter=_filter, unpack_returned_tuples=False)
 
 class PDLuaBytecodeFile(PDFile):
 	
@@ -15,15 +13,20 @@ class PDLuaBytecodeFile(PDFile):
 	PD_FILE_EXT = ""
 	NONPD_FILE_EXT = ".luac"
 	
-	def __init__(self, filename, skip_magic=False):
+	def __init__(self, filename, parent_pdz, skip_magic=False):
 		super().__init__(filename, skip_magic)
+		self.parent_pdz = parent_pdz
 		self.seek(0)
 		self.runtime = RUNTIME
 	
 	def execute(self, *args):
+		self.runtime.set_global("import", self.import_func)
 		result = self.runtime.execute(self.readbin(), *args)
 		self.seek(0)
 		return result
+	
+	def import_func(self, lib_name):
+		self.parent_pdz.import_func(lib_name)
 	
 	def to_nonpdfile(self):
 		data = self.readbin()

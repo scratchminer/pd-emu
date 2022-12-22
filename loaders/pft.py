@@ -7,8 +7,17 @@ from struct import unpack
 from sys import argv
 from unicodedata import category
 
-from pdfile import PDFile
-from pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA, _flatten2d
+from .pdfile import PDFile
+from .pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA
+
+def _flatten2d(seq):
+	return_seq = []
+	
+	for i in range(len(seq)):
+		for j in range(len(seq[i])):
+			return_seq.append(seq[i][j])
+	
+	return return_seq
 
 PFT_PALETTE = _flatten2d(PDI_PALETTE_WITH_ALPHA)
 
