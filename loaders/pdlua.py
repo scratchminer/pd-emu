@@ -1,9 +1,7 @@
-import copy
+from lupa import LuaRuntime
 from sys import argv
 
 from pdfile import PDFile
-
-from lupa import LuaRuntime
 
 def _filter(obj, attr_name, setting):
 	raise AttributeError
