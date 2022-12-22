@@ -2,7 +2,7 @@ import pygame as pg
 import pygame.locals as pgloc
 from PIL import Image
 
-import io
+from io import BytesIO
 from math import ceil
 from struct import pack
 from sys import argv
@@ -39,15 +39,15 @@ def _flatten2d(seq):
 	for i in range(len(seq)):
 		for j in range(len(seq[i])):
 			return_seq.append(seq[i][j])
-
+	
 	return return_seq
 
 class PDImageFile(PDFile):
-
+	
 	MAGIC = b"Playdate IMG"
 	PD_FILE_EXT = ".pdi"
 	NONPD_FILE_EXT = ".png"
-
+	
 	def __init__(self, filename, skip_magic=False):
 		super().__init__(filename, skip_magic)
 		
@@ -56,7 +56,7 @@ class PDImageFile(PDFile):
 			compressed = bool(flags & 0x80000000)
 			if compressed: self.advance(16)
 			self.decompress(compressed)
-						
+			
 			self.width = self.readu16()
 			self.height = self.readu16()
 			self.stride = self.readu16()
@@ -82,7 +82,7 @@ class PDImageFile(PDFile):
 			
 			for y in range(self.clip_t):
 				self.pixels.append([0] * self.stored_width)
-				
+			
 			for y in range(self.clip_t, self.height + self.clip_t):
 				self.pixels.append([])
 				row = self.readbin(self.stride)
@@ -98,7 +98,7 @@ class PDImageFile(PDFile):
 				
 				for x in range(self.clip_r):
 					self.pixels[y].append(0x0)
-					
+				
 			for y in range(self.clip_b):
 				self.pixels.append([0] * self.stored_width)
 			
@@ -106,15 +106,14 @@ class PDImageFile(PDFile):
 				for y in range(self.clip_t, self.height + self.clip_t):					
 					if self.alpha: 
 						row = self.readbin(self.stride)
-						while len(row) != self.stride: row += b"\x00"
+						while len(row) != self.stride: row += b"\0"
 					
 					for x in range(self.clip_l, self.width + self.clip_l):
 						x_rel = x - self.clip_l
-												
+						
 						self.pixels[y][x] &= 0x1
 						if self.alpha: self.pixels[y][x] |= ((row[x_rel // 8] >> (7-(x_rel%8))) & 0x1) << 1
 						else: self.pixels[y][x] |= 0x2
-							
 	
 	def to_surf(self):
 		self.surf = pg.Surface((len(self.pixels), len(self.pixels[0])), flags=(self.alpha * pgloc.SRCALPHA))
@@ -144,7 +143,7 @@ class PDImageFile(PDFile):
 		self.pil_img.putpalette(self.palette, color)
 		self.pil_img.putdata(_flatten2d(self.pixels))
 
-		fh = io.BytesIO()
+		fh = BytesIO()
 		self.pil_img.save(fh, format="PNG")
 		self.pngfile = fh.getvalue()
 		fh.close()
@@ -178,3 +177,30 @@ if __name__ == "__main__":
 	img_file = PDImageFile(filename)
 	with open(filename + img_file.NONPD_FILE_EXT, "wb") as f:
 		f.write(img_file.to_pngfile(bw=False))
+
+# From jaames/playdate-reverse-engineering
+
+# FILE HEADER (length 16)
+# 0: char[12]: constant "Playdate IMG"
+# 12: uint32: file bitflags
+# 		flags & 0x80000000 = file is compressed
+
+# COMPRESSED FILE HEADER (length 16, inserted after the file header if the file is compressed)
+# 0: uint32: decompressed data size in bytes
+# 4: uint32: image width
+# 8: uint32: image height
+# (4 bytes of zeros)
+
+# IMAGE DATA HEADER (length 16)
+# 0: uint16: stored image width
+# 2: uint16: stored image height
+# 4: uint16: image stride (usually ceil(width / 8))
+# 6: uint16: size of transparent left padding
+# 8: uint16: size of transparent right padding
+# 10: uint16: size of transparent top padding
+# 12: uint16: size of transparent bottom padding
+# 14: uint16: image bitflags
+# 		flags & 0x3 = image contains a separate alpha map
+
+# (data for the black/white map, with 0 = black and 1 = white)
+# (if the image contains one, data for the alpha map, with 0 = transparent and 1 = opaque)
