@@ -31,7 +31,7 @@ class PDAudioFormat:
 	def get_nchannels(fmt):
 		if fmt >= FORMAT_LENGTH: raise ValueError("not a valid Playdate audio format")
 		return (fmt & 1) + 1
-
+	
 	@staticmethod
 	def get_sampwidth(fmt):
 		if fmt < MONO_16: return 1
@@ -56,11 +56,11 @@ class PDAudioFile(PDFile):
 		
 		self.nchannels = PDAudioFormat.get_nchannels(self.fmt)
 		self.sampwidth = PDAudioFormat.get_sampwidth(self.fmt)
-				
+		
 		wavfile.setnchannels(self.nchannels)
 		wavfile.setsampwidth(self.sampwidth)
 		wavfile.setframerate(self.framerate)
-
+		
 		data = bytes()
 		stereo = (self.nchannels == 2)
 		if self.fmt < MONO_ADPCM4: data = self.readbin(-1)
@@ -78,7 +78,9 @@ class PDAudioFile(PDFile):
 					predictor.append(self.reads16())
 					step_idx.append(self.readu8())
 					self.advance(1)
-												
+				
+				# Because Python's audioop is scheduled for removal, I recreated audioop.adpcm2lin in Python
+				
 				for i in range(2 * block_len - (16 if stereo else 8)):
 					if i % 2 == 0:
 						if self.is_eof():
@@ -95,7 +97,7 @@ class PDAudioFile(PDFile):
 					step_idx[ny] += ADPCM_IDX_TBL[in_val & 0x7]
 					if step_idx[ny] < 0: step_idx[ny] = 0
 					if step_idx[ny] >= len(ADPCM_STEP_TBL): step_idx[ny] = len(ADPCM_STEP_TBL) - 1
-				
+					
 					delta = step >> 3
 					if in_val & 0x1: delta += (step >> 2)
 					if in_val & 0x2: delta += (step >> 1)
@@ -114,7 +116,7 @@ class PDAudioFile(PDFile):
 		wavfile.close()
 		self.wavfile = fh.getvalue()
 		fh.close()
-
+		
 		return self.wavfile
 	def to_nonpdfile(self):
 		return self.to_wavfile()
@@ -124,3 +126,25 @@ if __name__ == "__main__":
 	aud_file = PDAudioFile(filename)
 	with open(filename + aud_file.NONPD_FILE_EXT, "wb") as f:
 		f.write(aud_file.to_wavfile())
+
+# From my own research, but also jaames/playdate-reverse-engineering
+
+# FILE HEADER (length 16, but outside the compressed area if this file is contained in a PDZ)
+# 0: char[12]: constant "Playdate AUD"
+# 12: uint24: sample rate in Hz
+# 15: enum SoundFormat: sound format
+# 		0 = mono 8-bit PCM
+# 		1 = stereo 8-bit PCM
+# 		2 = mono 16-bit signed PCM
+# 		3 = stereo 16-bit signed PCM
+# 		4 = mono IMA ADPCM with block headers
+# 		5 = stereo IMA ADPCM with block headers
+
+# 16: uint16: maximum block length in samples, plus the block header's length in bytes (only appears if the format is ADPCM)
+
+# BLOCK HEADER (length 4 * number of channels)
+# 0: int16: IMA ADPCM predictor
+# 2: uint8: IMA ADPCM step index
+# (1 byte of zeros)
+
+# then the sound data -- if the sound is stereo, then the samples are nibble-interleaved, left channel first
