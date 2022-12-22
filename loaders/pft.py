@@ -215,8 +215,20 @@ if __name__ == "__main__":
 	with open(argv[1] + fnt_file.NONPD_FILE_EXT, "wb") as f:
 		f.write(fnt_file.to_nonpdfile())
 
+# From my own research, and also jaames/playdate-reverse-engineering#2
 
-# FILE HEADER (length 68)
+# FILE HEADER (length 16)
+# 0: char[12]: constant "Playdate FNT"
+# 12: uint32: file bitflags
+# 		flags & 0x80000000 = file is compressed
+
+# COMPRESSED FILE HEADER (length 16, inserted after the file header if the file is compressed)
+# 0: uint32: decompressed data size in bytes
+# 4: uint32: maximum glyph width
+# 8: uint32: maximum glyph height 
+# (4 bytes of zeros)
+
+# OVERALL HEADER (length 68)
 # 0: uint8: glyph width
 # 1: uint8: glyph height
 # 2: uint16: tracking
@@ -225,7 +237,7 @@ if __name__ == "__main__":
 #	 if next bit (LSB first) = 0, the page isn't in this font
 #	 otherwise, page is in this font as a standalone bank
 
-# offsets for pages are uint32
+# (offsets for pages are uint32)
 
 # PAGE HEADER (length 36)
 # (3 bytes of zeros)
@@ -235,19 +247,10 @@ if __name__ == "__main__":
 #	 if next bit (LSB first) = 0, character isn't in this font
 #	 otherwise, character is in this page
 	
-# offsets for glyphs are uint16
+# (offsets for glyphs are uint16)
 		
 # GLYPH FORMAT
 # 0: uint8: advance this many pixels
 # 1: uint8: number of kerning table entries - 1
 # (kerning table)
-# 0: uint16: glyph width
-# 2: uint16: glyph height
-# 4: uint16: stride
-# 6: uint16: left padding
-# 8: uint16: right padding
-# 10: uint16: top padding
-# 12: uint16: bottom padding
-# 14: uint16: flags:
-#	 flags & 0x3 > 0 = has alpha
-# (data, see image format)
+# (image data for the glyph without the 16-byte header; see the PDI documentation)
