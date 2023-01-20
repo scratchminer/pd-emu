@@ -10,5 +10,5 @@ def print_func(self, *args):
 	self.old_newline = self.newline
 '''
 
-RUNTIME = LuaRuntime(attribute_filter=_filter, unpack_returned_tuples=True)
+RUNTIME = LuaRuntime(unpack_returned_tuples=True)
 '''RUNTIME.set_global("print", self.print_func)'''
