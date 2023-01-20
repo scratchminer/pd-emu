@@ -31,17 +31,23 @@ class PDFile:
 	def readbin(self, numbytes=-1):
 		return self.handle.read(numbytes)
 	def readu8(self):
-		return unpack("<B", self.readbin(1))[0]
+		try: return unpack("<B", self.readbin(1))[0]
+		except struct_error: return None
 	def reads8(self):
-		return unpack("<b", self.readbin(1))[0]
+		try: return unpack("<b", self.readbin(1))[0]
+		except struct_error: return None
 	def readu16(self):
-		return unpack("<H", self.readbin(2))[0]
+		try: return unpack("<H", self.readbin(2))[0]
+		except struct_error: return None
 	def reads16(self):
-		return unpack("<h", self.readbin(2))[0]
+		try: return unpack("<h", self.readbin(2))[0]
+		except struct_error: return None
 	def readu24(self):
-		return int.from_bytes(self.readbin(3), byteorder="little")
+		try: return int.from_bytes(self.readbin(3), byteorder="little")
+		except struct_error: return None
 	def readu32(self):
-		return unpack("<L", self.readbin(4))[0]
+		try: return unpack("<L", self.readbin(4))[0]
+		except struct_error: return None
 	def readstr(self):
 		b = bytes()
 		while True:
@@ -62,8 +68,8 @@ class PDFile:
 		while self.tell() % numbytes != 0: self.advance(1)
 	def is_eof(self):
 		b = self.readu8()
-		self.seek(self.tell() - 1)
-		return b == -1
+		self.seekrelto(self.tell(), -1)
+		return b is None
 	def close(self):
 		self.handle.close()
 	def __del__(self):
