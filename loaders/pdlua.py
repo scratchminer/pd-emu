@@ -1,4 +1,4 @@
-from api.pdapi import RUNTIME
+from ..api.runtime import RUNTIME
 from sys import argv
 
 from .pdfile import PDFile
