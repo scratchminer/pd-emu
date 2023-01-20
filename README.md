@@ -24,7 +24,7 @@ What you _can_ do now is dump Playdate applications (directories with a PDX exte
 ## Dumping Playdate applications/games
 To dump a PDX:
 - `cd` to the root directory of this repo
-- `python3 loaders/pdx.py (path to PDX) (dump location)`
+- `python3 -m loaders.pdx (path to PDX) (dump location)`
 
 Tested and working for all the system apps in the 1.12.3 SDK (latest version as of this writing).
 
