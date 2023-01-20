@@ -34,21 +34,22 @@ class PDFontPage:
 			if (bits >> (i % 8)) & 1: 
 				self.glyphs_stored.append((self.number << 8) | i)
 		
-		offset_table_length = 2 * len(self.glyphs_stored)
+		offset_table_length = 2 * data[3]
 		offset_table = data[36:36 + offset_table_length]
 		offsets = [0x0000]
 
 		for i in range(0, offset_table_length, 2):
 			offsets.append(unpack("<H", offset_table[i:i+2])[0])
-
-		header_end = 36 + offset_table_length
 		
+		header_end = 36 + offset_table_length
+		while header_end % 4 != 0: header_end += 1
+				
 		self.glyphs = {}
 		for glyph_num in range(len(offsets) - 1):
 			offset = offsets[glyph_num]
 			next_offset = offsets[glyph_num + 1]
 
-			self.glyphs[self.glyphs_stored[glyph_num]] = PDFontGlyph(data[header_end+offset+2:header_end+next_offset], self.glyphs_stored[glyph_num])
+			self.glyphs[self.glyphs_stored[glyph_num] & 0xff] = PDFontGlyph(data[header_end+offset:header_end+next_offset], self.glyphs_stored[glyph_num])
 
 class PDFontGlyph:
 	def __init__(self, data, glyph_num):
@@ -67,7 +68,7 @@ class PDFontGlyph:
 		
 		self.image = PDImageFile(data, skip_magic=True)
 		if not self.width: self.width = self.image.width
-
+		
 	def get_width(self, tracking, next_glyph="\0"):
 		return tracking + self.image.width + self.kerning_table.get(next_glyph, 0)
 	
@@ -76,22 +77,21 @@ class PDFontGlyph:
 	
 	def to_surf(self, tracking, next_glyph="\0"):
 		if not self.image.surf: self.image.to_surf()
-		surf = self.image.surf
-		glyph_width = tracking + self.image.width + self.kerning_table.get(next_glyph, 0)
+		glyph_width = tracking + self.width + self.kerning_table.get(next_glyph, 0)
 		
 		self.surf = pg.Surface((glyph_width, self.image.stored_height), pgloc.SRCALPHA)
-		self.surf.blit(surf, (0, 0))
+		self.surf.blit(self.image.surf, (tracking, 0))
 		
 		return self.surf
 
 	def to_pngfile(self, tracking, next_glyph="\0"):
 		if not self.image.pil_img: self.image.to_pngfile()
+		glyph_width = tracking + self.width + self.kerning_table.get(next_glyph, 0)
 		
-		if self.image.height == 0:
-			self.pil_img = Image.new("P", (self.image.stored_width, self.image.stored_height))
-			self.pil_img.putpalette(PFT_PALETTE, "RGBA")
-		else: self.pil_img = self.image.pil_img.copy()
-				
+		self.pil_img = Image.new("P", (glyph_width, self.image.stored_height))
+		self.pil_img.putpalette(PFT_PALETTE, "RGBA")
+		self.pil_img.paste(self.image.pil_img, (tracking, 0))
+		
 		fh = io.BytesIO()
 		self.pil_img.save(fh, format="PNG")
 		self.pngfile = fh.getvalue()
@@ -112,11 +112,12 @@ class PDFontFile(PDFile):
 		compressed = bool(flags & 0x80000000)
 		if compressed: self.advance(16)
 		self.decompress(compressed)
-
+		
+		self.wide_font = bool(flags & 0x00000001)
 		self.max_width = self.readu8()
 		self.max_height = self.readu8()
 		self.tracking = self.readu16()
-
+		
 		self.pages_stored = []
 		bits = 0
 		for i in range(0x200):
@@ -128,6 +129,8 @@ class PDFontFile(PDFile):
 			offsets.append(self.readu32())
 
 		header_end = self.tell()
+		
+		# to-do: reverse-engineer the wide font format
 
 		self.pages = {}
 		for page_num in range(len(offsets) - 1):
@@ -230,6 +233,7 @@ if __name__ == "__main__":
 # 0: char[12]: constant "Playdate FNT"
 # 12: uint32: file bitflags
 # 		flags & 0x80000000 = file is compressed
+#		flags & 0x00000001 = file contains characters above U+1FFFF
 
 # COMPRESSED FILE HEADER (length 16, inserted after the file header if the file is compressed)
 # 0: uint32: decompressed data size in bytes
@@ -257,6 +261,7 @@ if __name__ == "__main__":
 #	 otherwise, character is in this page
 	
 # (offsets for glyphs are uint16)
+# (padding to align to a multiple of 4 bytes)
 		
 # GLYPH FORMAT
 # 0: uint8: advance this many pixels
