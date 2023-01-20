@@ -49,7 +49,7 @@ class PDZipEntry:
 			self.data = PDFontFile(b"\0\0\0\0" + data, skip_magic=True)
 		else: raise ValueError("Unknown file type value %i" % filetype)
 		
-		if filetype > PDZ_FILE_LUABYTECODE: self.extension = self.data.NONPD_FILE_EXT
+		if filetype > PDZ_FILE_NONE: self.extension = self.data.NONPD_FILE_EXT
 
 	def add_file(self, filename, filetype=PDZ_FILE_NONE, data=bytes()):		
 		if self.is_directory:
@@ -86,14 +86,14 @@ class PDZipEntry:
 			if target.is_directory:
 				target.dump_files(joinpath(path, target.filename))
 			else:
-				if target.filetype > PDZ_FILE_LUABYTECODE: non_pdfile = target.data.to_nonpdfile()
+				if target.filetype > PDZ_FILE_NONE: non_pdfile = target.data.to_nonpdfile()
 				else: non_pdfile = target.data
 				
 				if type(non_pdfile) == list:
-					for i in range(len(non_pdfile)):
-						filename = f"{target.filename}-frame{i}{target.extension}"
+					for i in range(1, len(non_pdfile) + 1):
+						filename = f"{target.filename}-table-{i}{target.extension}"
 						with open(joinpath(path, filename), "wb") as f:
-							f.write(non_pdfile[i])
+							f.write(non_pdfile[i - 1])
 				else:
 					filename = target.filename + target.extension
 					with open(joinpath(path, filename), "wb") as f:
@@ -113,7 +113,7 @@ class PDZipFile(PDFile):
 		
 		flags = self.readu8()
 		
-		while flags != -1:
+		while flags is not None:
 			compressed = bool(flags & 0x80)
 			filetype = flags & 0x7f
 	
@@ -124,7 +124,6 @@ class PDZipFile(PDFile):
 			
 			data = self.readbin(file_length)
 			
-			extra_metadata = bytes()
 			if compressed:
 				if filetype == PDZ_FILE_AUDIO:
 					# Audio files have the sample rate and audio format uncompressed out front

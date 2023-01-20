@@ -63,15 +63,15 @@ class PDXApplication:
 		for filename in root.keys():			
 			target = root[filename]
 			if type(target) == dict: self._dump_dir(target, joinpath(out_loc, filename))
-			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, splitext(filename)[0]))
+			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, filename))
 			else:
 				non_pdfile = target.to_nonpdfile()
 				
 				if type(non_pdfile) == list:
-					for i in range(len(non_pdfile)):
-						framename = f"{splitext(filename)[0]}-frame{i}{target.NONPD_FILE_EXT}"
+					for i in range(1, len(non_pdfile) - 1):
+						framename = f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"
 						with open(joinpath(out_loc, framename), "wb") as f:
-							f.write(non_pdfile[i])
+							f.write(non_pdfile[i - 1])
 				else: 
 					with open(joinpath(out_loc, f"{splitext(filename)[0]}{target.NONPD_FILE_EXT}"), "wb") as f:
 						f.write(non_pdfile)
@@ -82,7 +82,7 @@ class PDXApplication:
 
 if __name__ == "__main__":
 	if len(argv) == 1:
-		print("To dump an application: python pdx.py [input PDX] [output directory]")
+		print("To dump an application: python3 -m loaders.pdx [input PDX] [output directory]")
 	else:
 		filename = argv[1]
 		if isdir(filename):
