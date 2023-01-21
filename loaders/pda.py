@@ -1,7 +1,7 @@
 import io, wave
 from sys import argv, byteorder as BYTEORDER
 
-from .pdfile import PDFile
+from loaders.pdfile import PDFile
 
 MONO_8 = 0
 STEREO_8 = 1

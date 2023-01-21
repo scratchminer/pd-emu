@@ -1,7 +1,7 @@
-from ..api.runtime import RUNTIME
+from api.runtime import RUNTIME
 from sys import argv
 
-from .pdfile import PDFile
+from loaders.pdfile import PDFile
 
 def _filter(obj, attr_name, setting):
 	raise AttributeError

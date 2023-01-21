@@ -5,8 +5,8 @@ from sys import argv
 from struct import unpack
 from zlib import decompress
 
-from .pdfile import PDFile
-from .pdi import PDImageFile
+from loaders.pdfile import PDFile
+from loaders.pdi import PDImageFile
 
 PDV_PALETTE = (0x32, 0x2f, 0x28, 0xb1, 0xae, 0xa7)
 PDV_BW_PALETTE = (0x00, 0x00, 0x00, 0xff, 0xff, 0xff)

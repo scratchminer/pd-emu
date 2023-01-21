@@ -3,14 +3,14 @@ from os.path import abspath, basename, join as joinpath, normpath, splitext
 from sys import argv
 from zlib import decompress
 
-from .pdfile import PDFile
-from .pdlua import PDLuaBytecodeFile
-from .pda import PDAudioFile
-from .pdi import PDImageFile
-from .pds import PDStringsFile
-from .pdt import PDImageTableFile
-from .pdv import PDVideoFile
-from .pft import PDFontFile
+from loaders.pdfile import PDFile
+from loaders.pdlua import PDLuaBytecodeFile
+from loaders.pda import PDAudioFile
+from loaders.pdi import PDImageFile
+from loaders.pds import PDStringsFile
+from loaders.pdt import PDImageTableFile
+from loaders.pdv import PDVideoFile
+from loaders.pft import PDFontFile
 
 PDZ_FILE_NONE = 0
 PDZ_FILE_LUABYTECODE = 1

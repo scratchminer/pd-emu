@@ -1,7 +1,7 @@
 from json import dumps
 from sys import argv
 
-from .pdfile import PDFile
+from loaders.pdfile import PDFile
 
 class PDStringsFile(PDFile):
 	

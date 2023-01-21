@@ -7,8 +7,8 @@ from struct import unpack
 from sys import argv
 from unicodedata import category
 
-from .pdfile import PDFile
-from .pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA
+from loaders.pdfile import PDFile
+from loaders.pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA
 
 def _flatten2d(seq):
 	return_seq = []
@@ -58,14 +58,23 @@ class PDFontGlyph:
 		self.utf8_char = chr(glyph_num)
 		
 		self.kerning_table = {}
-		kerning_table_length = (data[1] + 1) * 2
-		data = data[2:]
+		i = data[1]
+		j = unpack("<H", data[2:4])[0]
+		data = data[4:]
 		
-		for i in range(0, kerning_table_length, 2):
-			self.kerning_table[chr(data[i])] = unpack("<b", bytes((data[i+1],)))[0]
+		kerning_table_length = 0
+		while i > 0:
+			self.kerning_table[chr(data[kerning_table_length])] = unpack("<b", bytes((data[kerning_table_length+1],)))[0]
+			kerning_table_length += 2
+			i -= 1
+		while kerning_table_length % 4 != 0: kerning_table_length += 1
+		while j > 0:
+			other_codepoint = int.from_bytes(data[kerning_table_length:kerning_table_length+3], byteorder="little")
+			self.kerning_table[chr(other_codepoint)] = unpack("<b", bytes((data[kerning_table_length+3],)))[0]
+			kerning_table_length += 4
+			j -= 1
 		
 		data = b"\0\0\0\0" + data[kerning_table_length:]
-		
 		self.image = PDImageFile(data, skip_magic=True)
 		if not self.width: self.width = self.image.width
 		
@@ -265,6 +274,16 @@ if __name__ == "__main__":
 		
 # GLYPH FORMAT
 # 0: uint8: advance this many pixels
-# 1: uint8: number of kerning table entries - 1
+# 1: uint8: number of kerning table page 0 entries
+# 2: uint16: number of kerning table Unicode entries
 # (kerning table)
 # (image data for the glyph without the 16-byte header; see the PDI documentation)
+
+# KERNING TABLE FORMAT
+# Page 0x000 mode (default):
+# 	0: uint8: second character codepoint
+# 	1: int8: kerning in pixels
+# (padding to align to a multiple of 4 bytes)
+# Unicode mode:
+# 	0: uint24: second character codepoint
+# 	3: int8: kerning in pixels

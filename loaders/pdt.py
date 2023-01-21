@@ -1,7 +1,7 @@
 from sys import argv
 
-from .pdfile import PDFile
-from .pdi import PDImageFile
+from loaders.pdfile import PDFile
+from loaders.pdi import PDImageFile
 
 class PDImageTableFile(PDFile):
 
