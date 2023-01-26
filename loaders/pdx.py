@@ -64,6 +64,10 @@ class PDXApplication:
 			target = root[filename]
 			if type(target) == dict: self._dump_dir(target, joinpath(out_loc, filename))
 			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, filename))
+			elif type(target) == StrayFile:
+				non_pdfile = target.to_nonpdfile()
+				with open(joinpath(out_loc, f"{filename}"), "wb") as f:
+					f.write(non_pdfile)
 			else:
 				non_pdfile = target.to_nonpdfile()
 				
@@ -72,7 +76,7 @@ class PDXApplication:
 						framename = f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"
 						with open(joinpath(out_loc, framename), "wb") as f:
 							f.write(non_pdfile[i - 1])
-				else: 
+				else:
 					with open(joinpath(out_loc, f"{splitext(filename)[0]}{target.NONPD_FILE_EXT}"), "wb") as f:
 						f.write(non_pdfile)
 	
