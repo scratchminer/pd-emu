@@ -22,7 +22,8 @@ def _flatten2d(seq):
 PFT_PALETTE = _flatten2d(PDI_PALETTE_WITH_ALPHA)
 
 class PDFontPage:
-	def __init__(self, data, page_num):
+	def __init__(self, data, page_num):		
+		num_glyphs_stored = data[3]
 		self.number = page_num
 		
 		self.glyphs_stored = []
@@ -45,12 +46,12 @@ class PDFontPage:
 		while header_end % 4 != 0: header_end += 1
 				
 		self.glyphs = {}
-		for glyph_num in range(len(offsets) - 1):
-			offset = offsets[glyph_num]
-			next_offset = offsets[glyph_num + 1]
-
-			self.glyphs[self.glyphs_stored[glyph_num] & 0xff] = PDFontGlyph(data[header_end+offset:header_end+next_offset], self.glyphs_stored[glyph_num])
-
+		for glyph_num in range(min(num_glyphs_stored, len(self.glyphs_stored))):
+			offset = header_end + offsets[glyph_num]
+			next_offset = header_end + offsets[glyph_num + 1]
+			
+			self.glyphs[self.glyphs_stored[glyph_num] & 0xff] = PDFontGlyph(data[offset:next_offset], self.glyphs_stored[glyph_num])
+		
 class PDFontGlyph:
 	def __init__(self, data, glyph_num):
 		self.width = data[0]
