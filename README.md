@@ -26,7 +26,7 @@ To dump a PDX:
 - `cd` to the root directory of this repo
 - `python3 -m loaders.pdx (path to PDX) (dump location)`
 
-Tested and working for all the system apps in the 1.12.3 SDK (latest version as of this writing).
+Tested and working for all the system apps in the 1.13.0 SDK (latest version as of this writing).
 
 ## Decompiling the Lua files
 See [my fork of unluac](https://github.com/scratchminer/unluac) for instructions.
