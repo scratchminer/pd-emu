@@ -82,7 +82,7 @@ class PDZipEntry:
 		except FileExistsError: pass
 		
 		for filename in self.data.keys():
-			target = self.data[filename]			
+			target = self.data[filename]
 			if target.is_directory:
 				target.dump_files(joinpath(path, target.filename))
 			else:

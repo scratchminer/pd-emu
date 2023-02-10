@@ -44,9 +44,6 @@ class PDXApplication:
 				for subdir in root.split(PATHSEP): workdir = workdir[subdir]
 			for subdir in dirs: workdir[subdir] = {}
 			for branch in files:
-				if root == ".": print(f"Loading {branch}...")
-				else: print(f"Loading {joinpath(root, branch)}...")
-				
 				extension = splitext(branch)[1]
 				is_pd_file = False
 				for file_type in self.ALLOWED_FILE_TYPES:
@@ -60,10 +57,10 @@ class PDXApplication:
 		try: mkdir(out_loc)
 		except FileExistsError: pass
 		
-		for filename in root.keys():			
+		for filename in root.keys():
 			target = root[filename]
 			if type(target) == dict: self._dump_dir(target, joinpath(out_loc, filename))
-			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, filename))
+			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, "Source"))
 			elif type(target) == StrayFile:
 				non_pdfile = target.to_nonpdfile()
 				with open(joinpath(out_loc, f"{filename}"), "wb") as f:
@@ -72,7 +69,7 @@ class PDXApplication:
 				non_pdfile = target.to_nonpdfile()
 				
 				if type(non_pdfile) == list:
-					for i in range(1, len(non_pdfile) - 1):
+					for i in range(1, len(non_pdfile) + 1):
 						framename = f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"
 						with open(joinpath(out_loc, framename), "wb") as f:
 							f.write(non_pdfile[i - 1])
@@ -81,7 +78,6 @@ class PDXApplication:
 						f.write(non_pdfile)
 	
 	def dump_files(self, out_loc):
-		print("Dumping...")
 		self._dump_dir(self.files, out_loc)
 
 if __name__ == "__main__":
@@ -98,4 +94,3 @@ if __name__ == "__main__":
 			dump_loc = abspath(dump_loc)
 						
 			pdx_app.dump_files(dump_loc)
-			
