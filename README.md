@@ -8,13 +8,12 @@ Yes, Panic already provides a piece of software called Playdate Simulator, but..
 
 I decided to try and fix this with new, _open-source_ software.
 
-## Dependencies
-To (eventually) run, you will need:
-- **For dumping PNG/GIF images:** [python-pillow/Pillow](https://github.com/python-pillow/Pillow) (no changes needed)
-- **For graphics, sound, etc.:** [pygame/pygame](https://github.com/pygame/pygame) (no changes needed)
-- **For emulation of games written in C:** [qilingframework/qiling](https://github.com/qilingframework/qiling) (no changes needed)
-- **For emulation of games written in Lua:** [scoder/lupa](https://github.com/scratchminer/lupa) (forked version with custom build of Lua)
-- **For parsing Playdate's Lua headers:** [lua/lua](https://github.com/scratchminer/lua54) (forked version with header and opcode patches)
+## Getting the repo
+1. Choose your favorite Python package manager to install these:
+	- For dumping PNG/GIF images: [Pillow](https://github.com/python-pillow/Pillow)
+	- For graphics, sound, etc.: [pygame](https://github.com/pygame/pygame)
+2. Run `git clone --recursive https://github.com/scratchminer/pd-emu.git` to clone this repo and its submodules.
+3. `cd lupa && make` should build the forks of both Lupa and Lua without having to run `setup.py`.
 
 ## Running
 You can't actually run this emulator now (since I have yet to add the Playdate API).
@@ -32,6 +31,6 @@ Tested and working for all the system apps in the 1.13.0 SDK (latest version as 
 See [my fork of unluac](https://github.com/scratchminer/unluac) for instructions.
 
 --------------------
-2022 scratchminer
+2023 scratchminer
 
 Not affiliated with Panic at all, just a neat little side project I've been doing for a while.
