@@ -13,7 +13,8 @@ I decided to try and fix this with new, _open-source_ software.
 	- For dumping PNG/GIF images: [Pillow](https://github.com/python-pillow/Pillow)
 	- For graphics, sound, etc.: [pygame](https://github.com/pygame/pygame)
 2. Run `git clone --recursive https://github.com/scratchminer/pd-emu.git` to clone this repo and its submodules.
-3. `cd lupa && make` should build the forks of both Lupa and Lua without having to run `setup.py`.
+3. `cd lupa && make` should build the forks of both Lupa and Lua without having to run `setup.py` directly.
+4. Use your favorite Python package manager to install the wheel in the `lupa/dist` directory.
 
 ## Running
 You can't actually run this emulator now (since I have yet to add the Playdate API).
