@@ -72,10 +72,10 @@ class PDZipEntry:
 		
 		for i in range(len(path) - 1):
 			try: directory = directory.data[path[i]]
-			except KeyError: raise FileNotFoundError(f"Entry not found: '{path[i]}'")
+			except KeyError: raise FileNotFoundError(f"PDZ entry not found: '{path[i]}'")
 
 		try: return directory.data[path[-1]]
-		except KeyError: raise FileNotFoundError(f"Entry not found: '{path[-1]}'")
+		except KeyError: raise FileNotFoundError(f"PDZ entry not found: '{path[-1]}'")
 
 	def dump_files(self, path):
 		try: mkdir(path)

@@ -80,27 +80,27 @@ class PDFontGlyph:
 		if not self.width: self.width = self.image.width
 		
 	def get_width(self, tracking, next_glyph="\0"):
-		return tracking + self.image.width + self.kerning_table.get(next_glyph, 0)
+		return tracking + 1 + self.width + self.kerning_table.get(next_glyph, 0)
 	
 	def get_top(self):
 		return self.image.clip_t
 	
 	def to_surf(self, tracking, next_glyph="\0"):
 		if not self.image.surf: self.image.to_surf()
-		glyph_width = tracking + self.width + self.kerning_table.get(next_glyph, 0)
+		glyph_width = tracking + self.width
 		
 		self.surf = pg.Surface((glyph_width, self.image.stored_height), pgloc.SRCALPHA)
-		self.surf.blit(self.image.surf, (tracking, 0))
+		self.surf.blit(self.image.surf, (0, 0))
 		
 		return self.surf
 
 	def to_pngfile(self, tracking, next_glyph="\0"):
 		if not self.image.pil_img: self.image.to_pngfile()
-		glyph_width = tracking + self.width + self.kerning_table.get(next_glyph, 0)
+		glyph_width = tracking + self.width
 		
 		self.pil_img = Image.new("P", (glyph_width, self.image.stored_height))
 		self.pil_img.putpalette(PFT_PALETTE, "RGBA")
-		self.pil_img.paste(self.image.pil_img, (tracking, 0))
+		self.pil_img.paste(self.image.pil_img)
 		
 		fh = io.BytesIO()
 		self.pil_img.save(fh, format="PNG")
@@ -189,7 +189,7 @@ class PDFontFile(PDFile):
 				continue
 
 			self.get_glyph(char).to_pngfile(self.tracking, next_char)			
-			pil_img.paste(self.get_glyph(char).pil_img, (width_accum + self.tracking, height_accum))
+			pil_img.paste(self.get_glyph(char).pil_img, (width_accum, height_accum), self.get_glyph(char).pil_img.convert("RGBA", dither=Image.Dither.NONE))
 			width_accum += self.get_glyph(char).get_width(self.tracking, next_char)
 
 		fh = io.BytesIO()
@@ -281,10 +281,10 @@ if __name__ == "__main__":
 # (image data for the glyph without the 16-byte header; see the PDI documentation)
 
 # KERNING TABLE FORMAT
-# Page 0x000 mode (default):
+# Page 0 (default):
 # 	0: uint8: second character codepoint
 # 	1: int8: kerning in pixels
 # (padding to align to a multiple of 4 bytes)
-# Unicode mode:
+# Unicode:
 # 	0: uint24: second character codepoint
 # 	3: int8: kerning in pixels

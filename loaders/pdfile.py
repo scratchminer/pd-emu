@@ -8,7 +8,7 @@ class PDFile:
 		self.data = b""
 		if type(filename) == str:
 			with open(filename, mode) as f: self.data = f.read()
-		else: 
+		else:
 			self.data = filename
 		self.handle = BytesIO(self.data)
 		

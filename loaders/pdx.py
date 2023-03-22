@@ -53,14 +53,14 @@ class PDXApplication:
 						break
 				if not is_pd_file: workdir[branch] = StrayFile(joinpath(rootdir, branch))
 	
-	def _dump_dir(self, root, out_loc):
+	def _dump_dir(self, root, out_loc, root_loc):
 		try: mkdir(out_loc)
 		except FileExistsError: pass
 		
 		for filename in root.keys():
 			target = root[filename]
-			if type(target) == dict: self._dump_dir(target, joinpath(out_loc, filename))
-			elif type(target) == PDZipFile: target.dump_files(joinpath(out_loc, "Source"))
+			if type(target) == dict: self._dump_dir(target, joinpath(out_loc, filename), root_loc)
+			elif type(target) == PDZipFile: target.dump_files(root_loc)
 			elif type(target) == StrayFile:
 				non_pdfile = target.to_nonpdfile()
 				with open(joinpath(out_loc, f"{filename}"), "wb") as f:
@@ -78,7 +78,7 @@ class PDXApplication:
 						f.write(non_pdfile)
 	
 	def dump_files(self, out_loc):
-		self._dump_dir(self.files, out_loc)
+		self._dump_dir(self.files, out_loc, out_loc)
 
 if __name__ == "__main__":
 	if len(argv) == 1:

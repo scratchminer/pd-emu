@@ -9,7 +9,7 @@ def _filter(obj, attr_name, setting):
 class PDLuaBytecodeFile(PDFile):
 	
 	MAGIC = b"\x1bLua\x54\x00\x19\x93\r\n\x1a\n\x04\x04\x04" # Lua 5.4.0 release
-	MAGIC2 = b"\x1bLua\xf8\x03\x00\x19\x93\r\n\x1a\n\x04\x04\x04" # Lua 5.4.0 beta
+	MAGIC2 = b"\x1bLua\x03\xf8\x00\x19\x93\r\n\x1a\n\x04\x04\x04" # Lua 5.4.0 beta
 	PD_FILE_EXT = ""
 	NONPD_FILE_EXT = ".luac"
 	
