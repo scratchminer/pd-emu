@@ -4,6 +4,7 @@ from PIL import Image
 
 from io import BytesIO
 from math import ceil
+from os.path import splitext
 from struct import pack
 from sys import argv
 
@@ -175,7 +176,7 @@ class PDImageFile(PDFile):
 if __name__ == "__main__":
 	filename = argv[1]
 	img_file = PDImageFile(filename)
-	with open(filename + img_file.NONPD_FILE_EXT, "wb") as f:
+	with open(f"{splitext(filename)[0]}{img_file.NONPD_FILE_EXT}", "wb") as f:
 		f.write(img_file.to_pngfile(bw=False))
 
 # From jaames/playdate-reverse-engineering

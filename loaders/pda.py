@@ -1,4 +1,5 @@
 from io import BytesIO
+from os.path import splitext
 from sys import argv, byteorder as BYTEORDER
 
 import loaders._wave as wave
@@ -90,7 +91,7 @@ class PDAudioFile(PDFile):
 if __name__ == "__main__":
 	filename = argv[1]
 	aud_file = PDAudioFile(filename)
-	with open(filename + aud_file.NONPD_FILE_EXT, "wb") as f:
+	with open(f"{splitext(filename)[0]}{aud_file.NONPD_FILE_EXT}", "wb") as f:
 		f.write(aud_file.to_wavfile())
 
 # From my own research, but also jaames/playdate-reverse-engineering

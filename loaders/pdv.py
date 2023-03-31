@@ -1,6 +1,7 @@
 from PIL import Image, GifImagePlugin
 
 from io import BytesIO
+from os.path import splitext
 from sys import argv
 from struct import unpack
 from zlib import decompress
@@ -108,7 +109,7 @@ class PDVideoFile(PDFile):
 if __name__ == "__main__":
 	filename = argv[1]
 	vid_file = PDVideoFile(filename)
-	with open(filename + vid_file.NONPD_FILE_EXT, "wb") as f:
+	with open(f"{splitext(filename)[0]}{vid_file.NONPD_FILE_EXT}", "wb") as f:
 		f.write(vid_file.to_giffile())
 
 # From jaames/playdate-reverse-engineering

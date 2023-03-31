@@ -1,3 +1,4 @@
+from os.path import splitext
 from sys import argv
 
 from loaders.pdfile import PDFile
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 	imt_file = PDImageTableFile(filename)
 	img_list = imt_file.to_nonpdfile()
 	for i in range(len(img_list)):
-		with open(f"{filename}-frame{i}" + imt_file.NONPD_FILE_EXT, "wb") as f:
+		with open(f"{splitext(filename)[0]}-table-{i}{imt_file.NONPD_FILE_EXT}", "wb") as f:
 			f.write(img_list[i])
 
 # From jaames/playdate-reverse-engineering

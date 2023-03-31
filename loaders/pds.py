@@ -1,4 +1,5 @@
 from json import dumps
+from os.path import splitext
 from sys import argv
 
 from loaders.pdfile import PDFile
@@ -44,7 +45,7 @@ class PDStringsFile(PDFile):
 if __name__ == "__main__":
 	filename = argv[1]
 	str_file = PDStringsFile(filename)
-	with open(filename + str_file.NONPD_FILE_EXT, "wb") as f:
+	with open(f"{splitext(filename)[0]}{str_file.NONPD_FILE_EXT}", "wb") as f:
 		f.write(str_file.to_jsonfile())
 
 # From jaames/playdate-reverse-engineering

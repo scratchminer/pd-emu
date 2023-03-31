@@ -2,7 +2,8 @@ import pygame as pg
 import pygame.locals as pgloc
 from PIL import Image
 
-import io
+from io import BytesIO
+from os.path import splitext
 from struct import unpack
 from sys import argv
 from unicodedata import category
@@ -102,7 +103,7 @@ class PDFontGlyph:
 		self.pil_img.putpalette(PFT_PALETTE, "RGBA")
 		self.pil_img.paste(self.image.pil_img)
 		
-		fh = io.BytesIO()
+		fh = BytesIO()
 		self.pil_img.save(fh, format="PNG")
 		self.pngfile = fh.getvalue()
 		fh.close()
@@ -192,7 +193,7 @@ class PDFontFile(PDFile):
 			pil_img.paste(self.get_glyph(char).pil_img, (width_accum, height_accum), self.get_glyph(char).pil_img.convert("RGBA", dither=Image.Dither.NONE))
 			width_accum += self.get_glyph(char).get_width(self.tracking, next_char)
 
-		fh = io.BytesIO()
+		fh = BytesIO()
 		pil_img.save(fh, format="PNG")
 		pngfile = fh.getvalue()
 		fh.close()
@@ -233,8 +234,9 @@ class PDFontFile(PDFile):
 		return self.to_pngfile(text)
 
 if __name__ == "__main__":
+	filename = argv[1]
 	fnt_file = PDFontFile(argv[1])
-	with open(argv[1] + fnt_file.NONPD_FILE_EXT, "wb") as f:
+	with open(f"{splitext(filename)[0]}{fnt_file.NONPD_FILE_EXT}", "wb") as f:
 		f.write(fnt_file.to_nonpdfile())
 
 # From my own research, and also jaames/playdate-reverse-engineering#2

@@ -15,7 +15,7 @@ def pd_accelerometerIsRunning():
 	return EMULATOR.accel.running
 
 def pd_apiVersion():
-	return "1.12.3", "1.12.0"
+	return "1.13.2", "1.13.0"
 
 def pd_buttonIsPressed(button):
 	return EMULATOR.buttons[EMULATOR.get_button_constant(button)]
