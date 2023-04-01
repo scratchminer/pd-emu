@@ -53,7 +53,7 @@ class PDZipEntry:
 
 	def add_file(self, filename, filetype=PDZ_FILE_NONE, data=bytes()):		
 		if self.is_directory:
-			path = normpath(filename).split("/")
+			path = normpath(filename).replace("\\", "/").split("/")
 			directory = self
 			
 			for i in range(len(path) - 1):
