@@ -11,7 +11,7 @@ from sys import argv
 from unicodedata import category
 
 from loaders.pdfile import PDFile
-from loaders.pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA
+from loaders.pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA, PDI_BW_PALETTE_WITH_ALPHA
 
 def _flatten2d(seq):
 	return_seq = []
@@ -23,6 +23,7 @@ def _flatten2d(seq):
 	return return_seq
 
 PFT_PALETTE = _flatten2d(PDI_PALETTE_WITH_ALPHA)
+PFT_BW_PALETTE = _flatten2d(PDI_BW_PALETTE_WITH_ALPHA)
 
 class PDFontPage:
 	def __init__(self, data, page_num):		
@@ -176,7 +177,7 @@ class PDFontFile(PDFile):
 		text_height = self.max_height * ceil(len(text) / 16)
 		
 		pil_img = Image.new("P", (text_width, text_height))
-		pil_img.putpalette(PFT_PALETTE, "RGBA")
+		pil_img.putpalette(PFT_BW_PALETTE, "RGBA")
 		
 		height_accum = 0
 		width_accum = 0
