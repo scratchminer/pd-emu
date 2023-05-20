@@ -1,8 +1,8 @@
 from io import BytesIO
 from os.path import splitext
 from sys import argv, byteorder as BYTEORDER
+import wave
 
-import loaders._wave as wave
 from loaders.pdfile import PDFile
 
 MONO_8 = 0
@@ -12,6 +12,78 @@ STEREO_16 = 3
 MONO_ADPCM4 = 4
 STEREO_ADPCM4 = 5
 FORMAT_LENGTH = 6
+
+IMA_INDEX_TABLE = [
+	-1, -1, -1, -1, 2, 4, 6, 8,
+	-1, -1, -1, -1, 2, 4, 6, 8
+]
+IMA_STEP_TABLE = [
+	7, 8, 9, 10, 11, 12, 13, 14,
+	16, 17, 19, 21, 23, 25, 28, 31,
+	34, 37, 41, 45, 50, 55, 60, 66,
+	73, 80, 88, 97, 107, 118, 130, 143,
+	157, 173, 190, 209, 230, 253, 279, 307,
+	337, 371, 408, 449, 494, 544, 598, 658,
+	724, 796, 876, 963, 1060, 1166, 1282, 1411,
+	1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024,
+	3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484,
+	7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+	15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794,
+	32767
+]
+
+# adapted from https://github.com/acida/pyima
+class ADPCMDecoder:
+	def __init__(self):
+		self.predictor = 0
+		self._step = 0
+		self.step_index = 7
+	
+	def decode(self, nibble):
+		# decode one sample from compressed nibble
+		difference = 0
+		
+		if nibble & 4:
+			difference += self._step
+		if nibble & 2:
+			difference += self._step >> 1
+		if nibble & 1:
+			difference += self._step >> 2
+		difference += self._step >> 3
+		if nibble & 8:
+			difference = -difference
+		
+		self.predictor += difference
+		
+		if self.predictor > 32767:
+			self.predictor = 32767
+		elif self.predictor < -32767:
+			self.predictor = - 32767
+		
+		self.step_index += IMA_INDEX_TABLE[nibble]
+		if self.step_index < 0:
+			self.step_index = 0
+		elif self.step_index > 88:
+			self.step_index = 88
+		self._step = IMA_STEP_TABLE[self.step_index]
+		
+		return self.predictor
+	
+	def decode_block(self, block):
+		result = bytes()
+		self._step = IMA_STEP_TABLE[self.step_index]
+		
+		result += self.predictor.to_bytes(2, byteorder="little", signed=True)
+		
+		for i in range(len(block)):
+			original_sample = block[i]
+			first_sample = original_sample >> 4
+			second_sample = original_sample & 0xf
+			
+			result += self.decode(first_sample).to_bytes(2, byteorder="little", signed=True)
+			result += self.decode(second_sample).to_bytes(2, byteorder="little", signed=True)
+		
+		return result
 
 class PDAudioFormat:
 	@staticmethod
@@ -44,7 +116,7 @@ class PDAudioFile(PDFile):
 		self.nchannels = PDAudioFormat.get_nchannels(self.fmt)
 		self.sampwidth = PDAudioFormat.get_sampwidth(self.fmt)
 		
-		wavfile = wave.open(fh, "wb", wave.WAVE_FORMAT_PCM if self.fmt < MONO_ADPCM4 else wave.WAVE_FORMAT_ADPCM)
+		wavfile = wave.open(fh, "wb")
 		
 		wavfile.setnchannels(self.nchannels)
 		wavfile.setsampwidth(self.sampwidth)
@@ -54,31 +126,47 @@ class PDAudioFile(PDFile):
 		stereo = (self.nchannels == 2)
 		if self.fmt < MONO_ADPCM4: data = self.readbin()
 		elif self.fmt < FORMAT_LENGTH:
-			wavfile.block_size = self.readu16()
+			block_size = self.readu16()
 			
-			if self.nchannels == 1:
-				# no conversion needed -- the samples are already in the correct format
-				data = self.readbin()
+			saved_pos = self.tell()
+			self.handle.seek(0, 2)
+			file_end = self.tell()
+			self.seek(saved_pos)
+			
+			if stereo:
+				decoder_left = ADPCMDecoder()
+				decoder_right = ADPCMDecoder()
+				
+				def decode_stereo(sample):
+					sample_left = sample >> 4
+					sample_right = sample & 0xf
+					
+					return decoder_left.decode(sample_left).to_bytes(2, byteorder="little", signed=True) + decoder_right.decode(sample_right).to_bytes(2, byteorder="little", signed=True)
+				
+				for i in range(saved_pos, file_end, block_size):
+					decoder_left.predictor = self.reads16()
+					decoder_left.step_index = self.readu8()
+					self.advance(1)
+					
+					decoder_right.predictor = self.reads16()
+					decoder_right.step_index = self.readu8()
+					self.advance(1)
+					
+					data += decoder_left.predictor.to_bytes(2, byteorder="little", signed=True)
+					data += decoder_right.predictor.to_bytes(2, byteorder="little", signed=True)
+					
+					block = self.readbin(block_size - 8)
+					data += b"".join(map(decode_stereo, tuple(block)))
+					
 			else:
-				# uh-oh, we have to shuffle the samples around to make them work with the WAV format
-				# this is the fastest way I could think of to do it
-				saved_pos = self.tell()
-				self.handle.seek(0, 2)
-				file_end = self.tell()
-				self.seek(saved_pos)
+				decoder = ADPCMDecoder()
 				
-				def _process_small(blk, is_header):
-					if is_header: return blk
-					ret = [(blk[2*i] >> 4) | (blk[2*i + 1] & 0xf0) for i in range(4)]
-					ret.extend([(blk[2*i] & 0x0f) | ((blk[2*i + 1] << 4) & 0xf0) for i in range(4)])
-					return bytes(ret)
-				
-				blocks = [self.readbin(8) for num in range(saved_pos, file_end, 8)]
-				data = bytes().join(map(
-					_process_small,
-					blocks,
-					[(num - saved_pos) % wavfile.block_size == 0 for num in range(saved_pos, file_end, 8)]
-				))
+				for i in range(saved_pos, file_end, block_size):
+					decoder.predictor = self.reads16()
+					decoder.step_index = self.readu8()
+					self.advance(1)
+					data += decoder.decode_block(self.readbin(block_size - 4))
+			
 		wavfile.writeframes(data)
 		wavfile.close()
 		self.wavfile = fh.getvalue()
