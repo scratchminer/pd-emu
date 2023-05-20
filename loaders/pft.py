@@ -2,7 +2,9 @@ import pygame as pg
 import pygame.locals as pgloc
 from PIL import Image
 
+from base64 import b64encode
 from io import BytesIO
+from math import ceil
 from os.path import splitext
 from struct import unpack
 from sys import argv
@@ -114,7 +116,7 @@ class PDFontFile(PDFile):
 	
 	MAGIC = b"Playdate FNT"
 	PD_FILE_EXT = ".pft"
-	NONPD_FILE_EXT = ".png"
+	NONPD_FILE_EXT = ".fnt"
 
 	def __init__(self, filename, skip_magic=False):
 		super().__init__(filename, skip_magic)
@@ -170,28 +172,24 @@ class PDFontFile(PDFile):
 		return return_accum
 
 	def to_pngfile(self, text):
-		text_width = self.get_width(text)
-		text_height = self.max_height * (text.count("\n") + 1)
+		text_width = self.max_width * 16
+		text_height = self.max_height * ceil(len(text) / 16)
 		
 		pil_img = Image.new("P", (text_width, text_height))
 		pil_img.putpalette(PFT_PALETTE, "RGBA")
 		
-		text += "\0"
-		
 		height_accum = 0
 		width_accum = 0
 		
-		for i in range(len(text) - 1):
+		for i in range(len(text)):
 			char = text[i]
-			next_char = text[i + 1]
-			if char == "\n":
+			if i % 16 == 0 and i:
 				height_accum += self.max_height
 				width_accum = 0
-				continue
 
-			self.get_glyph(char).to_pngfile(self.tracking, next_char)			
+			self.get_glyph(char).to_pngfile(0, "\0")
 			pil_img.paste(self.get_glyph(char).pil_img, (width_accum, height_accum), self.get_glyph(char).pil_img.convert("RGBA", dither=Image.Dither.NONE))
-			width_accum += self.get_glyph(char).get_width(self.tracking, next_char)
+			width_accum += self.max_width
 
 		fh = BytesIO()
 		pil_img.save(fh, format="PNG")
@@ -225,13 +223,41 @@ class PDFontFile(PDFile):
 
 	def to_nonpdfile(self):
 		text = ""
+		widths = {}
+		kerning = {}
+		
 		for page in self.pages.values():
 			for glyph in page.glyphs.values():
+				widths[glyph.utf8_char] = glyph.width
+				if len(glyph.kerning_table): kerning[glyph.utf8_char] = glyph.kerning_table
+				
 				text += glyph.utf8_char
-			text += "\n"
-
 		text = text[:-1]
-		return self.to_pngfile(text)
+		
+		png_data = b64encode(self.to_pngfile(text))
+		file_data = f'''
+-- Decompiled with the pd-emu decompilation tools
+
+-- Embedded PNG data
+datalen={len(png_data)}
+data={png_data.decode("utf-8")}
+width={self.max_width}
+height={self.max_height}
+
+tracking={self.tracking}
+
+-- Glyphs'''
+		for glyph, width in widths.items():
+			if glyph == " ":
+				glyph = "space"
+			file_data += f"\n{glyph}\t\t{width}"
+		
+		file_data += "\n\n-- Kerning"		
+		for glyph, kerning_table in kerning.items():
+			for other_glyph, amount in kerning_table.items():
+				file_data += f"\n{glyph}{other_glyph}\t\t{amount}"
+		
+		return file_data.encode("utf-8")
 
 if __name__ == "__main__":
 	filename = argv[1]

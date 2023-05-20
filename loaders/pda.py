@@ -192,7 +192,7 @@ if __name__ == "__main__":
 # 		1 = stereo 8-bit PCM
 # 		2 = mono 16-bit signed PCM
 # 		3 = stereo 16-bit signed PCM
-# 		4 = mono IMA ADPCM with block headers
+# 		4 = mono IMA ADPCM with block headers (high nibble first)
 # 		5 = stereo IMA ADPCM with block headers
 
 # 16: uint16: block alignment in bytes (only appears if the format is ADPCM)
