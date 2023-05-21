@@ -4,7 +4,7 @@ from calendar import timegm
 from datetime import datetime, timezone
 
 from os import name as PLATFORM, system
-from time import gmtime, localtime, sleep, time as epoch_sec
+from time import gmtime, localtime, sleep, perf_counter
 from threading import Thread
 
 from loaders.pft import PFT_PALETTE
@@ -18,15 +18,13 @@ def pd_apiVersion():
 	return 11370, 11300
 
 def pd_buttonIsPressed(button):
-	return EMULATOR.buttons[EMULATOR.get_button_constant(button)]
+	return EMULATOR.buttons[EMULATOR.ButtonValues.button_constant(button)]
 
 def pd_buttonJustPressed(button):
-	return EMULATOR.buttons[EMULATOR.get_button_constant(button)] and \
-		EMULATOR.buttons[EMULATOR.get_button_constant(button)] != EMULATOR.prev_buttons[EMULATOR.get_button_constant(button)]
+	return EMULATOR.buttons[EMULATOR.ButtonValues.button_constant(button)] and EMULATOR.buttons[EMULATOR.ButtonValues.button_constant(button)] != EMULATOR.prev_buttons[EMULATOR.ButtonValues.button_constant(button)]
 
 def pd_buttonJustReleased(button):
-	return EMULATOR.prev_buttons[EMULATOR.get_button_constant(button)] and \
-		EMULATOR.buttons[EMULATOR.get_button_constant(button)] != EMULATOR.prev_buttons[EMULATOR.get_button_constant(button)]
+	return EMULATOR.prev_buttons[EMULATOR.ButtonValues.button_constant(button)] and EMULATOR.buttons[EMULATOR.ButtonValues.button_constant(button)] != EMULATOR.prev_buttons[EMULATOR.ButtonValues.button_constant(button)]
 
 def pd_clearConsole():
 	system("cls" if PLATFORM == "nt" else "clear")
@@ -79,10 +77,13 @@ def pd_getCurrentTimeMilliseconds():
 	return EMULATOR.game_time
 
 def pd_getElapsedTime():
-	return epoch_sec() - EMULATOR.hires_time
+	return perf_counter() - EMULATOR.hires_time
 
 def pd_getFlipped():
 	return EMULATOR.settings.upside_down
+
+def pd_getFPS():
+	return EMULATOR.clock.get_fps()
 
 def pd_getGMTTime():
 	dt = datetime.now(tz=timezone.utc)
@@ -164,7 +165,7 @@ def pd_readAccelerometer():
 # def pd_reboot():
 
 def pd_resetElapsedTime():
-	EMULATOR.hires_time = epoch_sec()
+	EMULATOR.hires_time = perf_counter()
 
 def pd_setAutoLockDisabled(disable):
 	EMULATOR.settings.auto_lock = not bool(disable)
@@ -195,6 +196,9 @@ def pd_setStatsInterval(seconds):
 	else:
 		EMULATOR.stats.enabled = True
 		EMULATOR.stats.interval = float(seconds)
+
+def pd_shouldDisplay24HourTime():
+	return EMULATOR.settings.time_24hours
 
 def pd_start():
 	with EMULATOR.call_update_lock: EMULATOR.call_update = True
@@ -240,6 +244,7 @@ PLAYDATE_API = {
 	"drawFPS": pd_drawFPS,
 	"epochFromGMTTime": pd_epochFromGMTTime,
 	"epochFromTime": pd_epochFromTime,
+	# "exit": pd_exit,
 	"getBatteryPercentage": pd_getBatteryPercentage,
 	"getBatteryVoltage": pd_getBatteryVoltage,
 	"getButtonState": pd_getButtonState,
@@ -258,6 +263,12 @@ PLAYDATE_API = {
 	"getTime": pd_getTime,
 	"GMTTimeFromEpoch": pd_GMTTimeFromEpoch,
 	"isCrankDocked": pd_isCrankDocked,
+	"kButtonA": EMULATOR.ButtonValues.A,
+	"kButtonB": EMULATOR.ButtonValues.B,
+	"kButtonDown": EMULATOR.ButtonValues.DOWN,
+	"kButtonLeft": EMULATOR.ButtonValues.LEFT,
+	"kButtonRight": EMULATOR.ButtonValues.RIGHT,
+	"kButtonUp": EMULATOR.ButtonValues.UP,
 	"readAccelerometer": pd_readAccelerometer,
 	# "reboot": pd_reboot,
 	"resetElapsedTime": pd_resetElapsedTime,
@@ -269,6 +280,7 @@ PLAYDATE_API = {
 	"setMinimumGCTime": pd_setMinimumGCTime,
 	"setNewlinePrinted": pd_setNewlinePrinted,
 	"setStatsInterval": pd_setStatsInterval,
+	"shouldDisplay24HourTime": pd_shouldDisplay24HourTime,
 	"start": pd_start,
 	"startAccelerometer": pd_startAccelerometer,
 	"stop": pd_stop,
