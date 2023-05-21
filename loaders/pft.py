@@ -12,6 +12,9 @@ from unicodedata import category
 
 from loaders.pdfile import PDFile
 from loaders.pdi import PDImageFile, PDI_PALETTE_WITH_ALPHA, PDI_BW_PALETTE_WITH_ALPHA
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pft")
 
 def _flatten2d(seq):
 	return_seq = []
@@ -261,6 +264,8 @@ tracking={self.tracking}
 		return file_data.encode("utf-8")
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	fnt_file = PDFontFile(argv[1])
 	with open(f"{splitext(filename)[0]}{fnt_file.NONPD_FILE_EXT}", "wb") as f:

@@ -1,6 +1,6 @@
 from os import mkdir, sep as PATHSEP
 from os.path import abspath, basename, join as joinpath, normpath, splitext
-from sys import argv
+from sys import argv, exit
 from zlib import decompress
 
 from loaders.pdfile import PDFile
@@ -11,6 +11,9 @@ from loaders.pds import PDStringsFile
 from loaders.pdt import PDImageTableFile
 from loaders.pdv import PDVideoFile
 from loaders.pft import PDFontFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pdz")
 
 PDZ_FILE_NONE = 0
 PDZ_FILE_LUABYTECODE = 1
@@ -23,7 +26,6 @@ PDZ_FILE_FONT = 7
 
 class PDZipEntry:
 	def __init__(self, parent_pdz, filename, filetype=PDZ_FILE_NONE, data=bytes()):
-		
 		self.filename = filename
 		self.filetype = filetype
 		self.is_directory = False
@@ -47,7 +49,9 @@ class PDZipEntry:
 			self.data = PDStringsFile(b"\0\0\0\0" + data, skip_magic=True)
 		elif filetype == PDZ_FILE_FONT:
 			self.data = PDFontFile(b"\0\0\0\0" + data, skip_magic=True)
-		else: raise ValueError("Unknown file type value %i" % filetype)
+		else: 
+			LOGGER.error(f"Unknown file type: {hex(filetype)}")
+			exit(-1)
 		
 		if filetype > PDZ_FILE_NONE: self.extension = self.data.NONPD_FILE_EXT
 
@@ -89,11 +93,14 @@ class PDZipEntry:
 				if target.filetype > PDZ_FILE_NONE: non_pdfile = target.data.to_nonpdfile()
 				else: non_pdfile = target.data
 				
-				if type(non_pdfile) == list:
-					for i in range(1, len(non_pdfile) + 1):
-						filename = f"{target.filename}-table-{i}{target.extension}"
-						with open(joinpath(path, filename), "wb") as f:
-							f.write(non_pdfile[i - 1])
+				if target.filetype == PDZ_FILE_IMAGETABLE:
+					if not target.data.is_matrix:
+						for i in range(len(non_pdfile)):
+							with open(joinpath(path, f"{splitext(filename)[0]}-table-{i}{target.data.NONPD_FILE_EXT}"), "wb") as f:
+								f.write(non_pdfile[i].to_nonpdfile())
+					else:
+						with open(joinpath(path, f"{splitext(filename)[0]}-table-{target.data.image_table[0][0].stored_width}-{target.data.image_table[0][0].stored_height}{target.extension}"), "wb") as f:
+							f.write(non_pdfile)
 				else:
 					filename = target.filename + target.extension
 					with open(joinpath(path, filename), "wb") as f:
@@ -145,6 +152,8 @@ class PDZipFile(PDFile):
 		self.root_directory.dump_files(directory_name)
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	pdz_file = PDZipFile(filename)
 	dump_loc = splitext(filename)[0]

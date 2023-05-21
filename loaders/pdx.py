@@ -10,12 +10,16 @@ from loaders.pdt import PDImageTableFile
 from loaders.pdv import PDVideoFile
 from loaders.pft import PDFontFile
 from loaders.pdz import PDZipFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pdx")
 
 class StrayFile(PDFile):
 	MAGIC = b""
 	NONPD_FILE_EXT = ""
 	
 	def __init__(self, filename):
+		LOGGER.info(f"Copying non-Playdate file {filename}...")
 		super().__init__(filename, skip_magic=True)
 		self.seek(0)
 	
@@ -68,11 +72,14 @@ class PDXApplication:
 			else:
 				non_pdfile = target.to_nonpdfile()
 				
-				if type(non_pdfile) == list:
-					for i in range(1, len(non_pdfile) + 1):
-						framename = f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"
-						with open(joinpath(out_loc, framename), "wb") as f:
-							f.write(non_pdfile[i - 1])
+				if type(target) == PDImageTableFile:
+					if not target.is_matrix:
+						for i in range(len(non_pdfile)):
+							with open(joinpath(out_loc, f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"), "wb") as f:
+								f.write(non_pdfile[i].to_nonpdfile())
+					else:
+						with open(joinpath(out_loc, f"{splitext(filename)[0]}-table-{target.image_table[0][0].stored_width}-{target.image_table[0][0].stored_height}{target.NONPD_FILE_EXT}"), "wb") as f:
+							f.write(non_pdfile)
 				else:
 					with open(joinpath(out_loc, f"{splitext(filename)[0]}{target.NONPD_FILE_EXT}"), "wb") as f:
 						f.write(non_pdfile)
@@ -81,8 +88,11 @@ class PDXApplication:
 		self._dump_dir(self.files, out_loc, out_loc)
 
 if __name__ == "__main__":
+	init_logging()
+	
 	if len(argv) == 1:
-		print("To dump an application: python3 -m loaders.pdx [input PDX] [output directory]")
+		LOGGER.error("No argument specified")
+		LOGGER.info("To dump an application: python3 -m loaders.pdx [input PDX] [output directory]")
 	else:
 		filename = argv[1]
 		if isdir(filename):
