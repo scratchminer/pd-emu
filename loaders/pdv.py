@@ -8,6 +8,9 @@ from zlib import decompress
 
 from loaders.pdfile import PDFile
 from loaders.pdi import PDImageFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pdv")
 
 PDV_PALETTE = (0x32, 0x2f, 0x28, 0xb1, 0xae, 0xa7)
 PDV_BW_PALETTE = (0x00, 0x00, 0x00, 0xff, 0xff, 0xff)
@@ -26,6 +29,7 @@ class PDVideoFile(PDFile):
 	NONPD_FILE_EXT = ".gif"
 
 	def __init__(self, filename, skip_magic=False):
+		if not skip_magic: LOGGER.info(f"Decompiling video file {filename}...")
 		super().__init__(filename, skip_magic)
 
 		self.advance(4)
@@ -34,6 +38,9 @@ class PDVideoFile(PDFile):
 		self.framerate = unpack("<f", self.readbin(4))[0]
 		self.width = self.readu16()
 		self.height = self.readu16()
+		
+		LOGGER.debug(f"Framerate: {self.framerate:02f} fps")
+		LOGGER.debug(f"Frame size: {self.width} x {self.height}")
 
 		offsets = []
 		frame_type_table = []
@@ -107,6 +114,8 @@ class PDVideoFile(PDFile):
 		return self.to_giffile()
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	vid_file = PDVideoFile(filename)
 	with open(f"{splitext(filename)[0]}{vid_file.NONPD_FILE_EXT}", "wb") as f:

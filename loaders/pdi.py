@@ -9,6 +9,9 @@ from struct import pack
 from sys import argv
 
 from loaders.pdfile import PDFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pdi")
 
 PDI_PALETTE = (
 	(0x32, 0x2f, 0x28),
@@ -50,6 +53,7 @@ class PDImageFile(PDFile):
 	NONPD_FILE_EXT = ".png"
 	
 	def __init__(self, filename, skip_magic=False):
+		if not skip_magic: LOGGER.info(f"Decompiling image file {filename}...")
 		super().__init__(filename, skip_magic)
 		
 		if filename != bytes():
@@ -67,6 +71,10 @@ class PDImageFile(PDFile):
 			self.clip_b = self.readu16()
 			flags = self.readu16()
 			self.alpha = bool(flags & 0x3)
+			
+			LOGGER.debug(f"Image size: {self.width} x {self.height}")
+			LOGGER.debug(f"Stored image size: {self.clip_r - self.clip_l} x {self.clip_t - self.clip_b}")
+			LOGGER.debug(f"Mask image present: {'yes' if self.alpha else 'no'}")
 			
 			data_start = self.tell()
 			self.raw = self.readbin()
@@ -174,6 +182,8 @@ class PDImageFile(PDFile):
 		return img_file
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	img_file = PDImageFile(filename)
 	with open(f"{splitext(filename)[0]}{img_file.NONPD_FILE_EXT}", "wb") as f:

@@ -9,7 +9,7 @@ from threading import Thread
 
 from loaders.pft import PFT_PALETTE
 from pdemu import EMULATOR
-from .runtime import RUNTIME
+from api.runtime import RUNTIME
 
 def pd_accelerometerIsRunning():
 	return EMULATOR.accel.running

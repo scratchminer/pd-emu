@@ -26,12 +26,10 @@ To dump a PDX:
 - `cd` to the root directory of this repo
 - `python3 -m loaders.pdx (path to PDX) (dump location)`
 
-Tested and working for all the system apps in the 1.13.2 SDK (latest version as of this writing), as well as every game in Season 1.
-
 ## Decompiling the Lua files
 See [my fork of unluac](https://github.com/scratchminer/unluac) for instructions.
 
---------------------
+---
 2023 scratchminer
 
 Not affiliated with Panic at all, just a neat little side project I've been doing for a while.

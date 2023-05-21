@@ -3,7 +3,7 @@ from lupa import LuaRuntime
 # this function will go into the PDEmulator class
 '''
 def print_func(self, *args):
-	if self.old_newline == "\n": print("[INFO] ", end="")
+	if self.old_newline == "\n": print("[] ", end="")
 	string_args = []
 	for arg in args: string_args.append(RUNTIME.globals().tostring(arg))
 	print(*string_args, end=self.newline, sep="\t")

@@ -4,6 +4,9 @@ from sys import argv, byteorder as BYTEORDER
 import wave
 
 from loaders.pdfile import PDFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pda")
 
 MONO_8 = 0
 STEREO_8 = 1
@@ -40,7 +43,6 @@ class ADPCMDecoder:
 		self.step_index = 7
 	
 	def decode(self, nibble):
-		# decode one sample from compressed nibble
 		difference = 0
 		
 		if nibble & 4:
@@ -99,22 +101,29 @@ class PDAudioFormat:
 		else: raise ValueError("not a valid Playdate audio format")
 
 class PDAudioFile(PDFile):
-	
 	MAGIC = b"Playdate AUD"
 	PD_FILE_EXT = ".pda"
 	NONPD_FILE_EXT = ".wav"
 	
 	def __init__(self, filename, skip_magic=False):
+		if not skip_magic: LOGGER.info(f"Decompiling audio file {filename}...")
 		super().__init__(filename, skip_magic)
 		
 		self.framerate = self.readu24()	
 		self.fmt = self.readu8()
 	
-	def to_wavfile(self):			
+	def to_wavfile(self):		
 		fh = BytesIO()
 		
-		self.nchannels = PDAudioFormat.get_nchannels(self.fmt)
-		self.sampwidth = PDAudioFormat.get_sampwidth(self.fmt)
+		try:
+			self.nchannels = PDAudioFormat.get_nchannels(self.fmt)
+			self.sampwidth = PDAudioFormat.get_sampwidth(self.fmt)
+		except ValueError:
+			LOGGER.error("Audio format invalid.")
+			return b""
+		
+		LOGGER.debug(f"Audio format: {'IMA ADPCM' if self.fmt > STEREO_16 else 'PCM'}")
+		LOGGER.debug(f"Channels: {'2 (Stereo)' if self.nchannels == 2 else '1 (Mono)'}")
 		
 		wavfile = wave.open(fh, "wb")
 		
@@ -124,8 +133,12 @@ class PDAudioFile(PDFile):
 		
 		data = bytes()
 		stereo = (self.nchannels == 2)
-		if self.fmt < MONO_ADPCM4: data = self.readbin()
+		if self.fmt < MONO_ADPCM4: 
+			LOGGER.debug("Data is already PCM, so no conversion needed.")
+			data = self.readbin()
 		elif self.fmt < FORMAT_LENGTH:
+			LOGGER.debug("Data is ADPCM -- conversion needed!")
+			
 			block_size = self.readu16()
 			
 			saved_pos = self.tell()
@@ -177,6 +190,8 @@ class PDAudioFile(PDFile):
 		return self.to_wavfile()
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	aud_file = PDAudioFile(filename)
 	with open(f"{splitext(filename)[0]}{aud_file.NONPD_FILE_EXT}", "wb") as f:

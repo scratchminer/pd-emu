@@ -3,14 +3,18 @@ from os.path import splitext
 from sys import argv
 
 from loaders.pdfile import PDFile
+from logger import init_logging, get_logger
+
+LOGGER = get_logger("loaders.pds")
 
 class PDStringsFile(PDFile):
 	
 	MAGIC = b"Playdate STR"
 	PD_FILE_EXT = ".pds"
-	NONPD_FILE_EXT = ".json"
+	NONPD_FILE_EXT = ".strings"
 	
 	def __init__(self, filename, skip_magic=False):
+		if not skip_magic: LOGGER.info(f"Decompiling strings file {filename}...")
 		super().__init__(filename, skip_magic)
 		
 		flags = self.readu32()
@@ -35,18 +39,23 @@ class PDStringsFile(PDFile):
 	def to_dict(self):
 		return self.string_table
 	
-	def to_jsonfile(self):
-		self.jsonfile = bytes(dumps(self.string_table, indent="\t"), "utf-8")
-		return self.jsonfile
+	def to_stringsfile(self):
+		data = b"-- Decompiled with the pd-emu decompilation tools"
+		for k, v in self.string_table.items():
+			data += f"\n\"{k}\" = \"{v}\"".decode("utf-8")
+		self.stringsfile = data.encode("utf-8")
+		return self.stringsfile
 	
 	def to_nonpdfile(self):
-		return self.to_jsonfile()
+		return self.to_stringsfile()
 
 if __name__ == "__main__":
+	init_logging()
+	
 	filename = argv[1]
 	str_file = PDStringsFile(filename)
 	with open(f"{splitext(filename)[0]}{str_file.NONPD_FILE_EXT}", "wb") as f:
-		f.write(str_file.to_jsonfile())
+		f.write(str_file.to_nonpdfile())
 
 # From jaames/playdate-reverse-engineering
 
