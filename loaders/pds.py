@@ -42,8 +42,8 @@ class PDStringsFile(PDFile):
 	def to_stringsfile(self):
 		data = b"-- Decompiled with the pd-emu decompilation tools"
 		for k, v in self.string_table.items():
-			data += f"\n\"{k}\" = \"{v}\"".decode("utf-8")
-		self.stringsfile = data.encode("utf-8")
+			data += f"\n\"{k}\" = \"{v}\"".encode("utf-8")
+		self.stringsfile = data
 		return self.stringsfile
 	
 	def to_nonpdfile(self):
