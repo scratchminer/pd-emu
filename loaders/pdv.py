@@ -119,7 +119,7 @@ if __name__ == "__main__":
 	filename = argv[1]
 	vid_file = PDVideoFile(filename)
 	with open(f"{splitext(filename)[0]}{vid_file.NONPD_FILE_EXT}", "wb") as f:
-		f.write(vid_file.to_giffile())
+		f.write(vid_file.to_nonpdfile())
 
 # From jaames/playdate-reverse-engineering
 

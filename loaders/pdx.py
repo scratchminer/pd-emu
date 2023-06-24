@@ -48,10 +48,9 @@ class PDXApplication:
 				for subdir in root.split(PATHSEP): workdir = workdir[subdir]
 			for subdir in dirs: workdir[subdir] = {}
 			for branch in files:
-				extension = splitext(branch)[1]
 				is_pd_file = False
 				for file_type in self.ALLOWED_FILE_TYPES:
-					if extension == file_type.PD_FILE_EXT:
+					if branch.endswith(file_type.PD_FILE_EXT):
 						is_pd_file = True
 						workdir[branch] = file_type(joinpath(rootdir, branch))
 						break

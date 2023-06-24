@@ -6,6 +6,7 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = 1
 import pygame as pg
 import pygame.locals as pgloc
 
+from loaders.pdx import PDXApplication
 from logger import init_logging, get_logger
 
 LOGGER = get_logger("pdemu")
@@ -36,16 +37,17 @@ class PDEmulator:
 			elif type(button) == int and button < 0x100: return button
 			else:
 				LOGGER.error("Invalid button constant value")
-				return
 	
 	def __init__(self, app=None):
-		if app is not None:
+		if type(app) == PDXApplication:
 			# load it up
 			pass
 		pg.init()
 		
 		self.display = pg.display.set_mode(size=(400, 240), flags=pg.SCALED)
+		self.reset()
 		
+	def reset(self):
 		self.call_update_lock = Lock()
 		self.newline = "\n"
 		
@@ -60,8 +62,8 @@ class PDEmulator:
 			PDEmulator.ButtonValues.LOCK: False
 		}
 		self.prev_buttons = self.buttons.copy()
-		self.clock = pg.time.Clock()
 		
+		self.clock = pg.time.Clock()
 		self.game_time = 0.0
 		self.hires_time = perf_counter()
 		

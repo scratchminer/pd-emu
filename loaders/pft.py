@@ -282,7 +282,7 @@ if __name__ == "__main__":
 # COMPRESSED FILE HEADER (length 16, inserted after the file header if the file is compressed)
 # 0: uint32: decompressed data size in bytes
 # 4: uint32: maximum glyph width
-# 8: uint32: maximum glyph height 
+# 8: uint32: maximum glyph height
 # (4 bytes of zeros)
 
 # OVERALL HEADER (length 68)
