@@ -72,7 +72,7 @@ class PDImageTableFile(PDFile):
 		
 		for y in range(self.num_rows):
 			for x in range(self.num_per_row):
-				return_list.append(self.image_table[y][x])
+				return_list.append(self.image_table[y][x].to_nonpdfile())
 		return return_list
 
 	def to_nonpdfile(self):

@@ -309,16 +309,16 @@ if __name__ == "__main__":
 		
 # GLYPH FORMAT
 # 0: uint8: advance this many pixels
-# 1: uint8: number of kerning table page 0 entries
-# 2: uint16: number of kerning table Unicode entries
+# 1: uint8: number of short kerning table entries
+# 2: uint16: number of long kerning table entries
 # (kerning table)
 # (image data for the glyph without the 16-byte header; see the PDI documentation)
 
 # KERNING TABLE FORMAT
-# Page 0 (default):
+# Short:
 # 	0: uint8: second character codepoint
 # 	1: int8: kerning in pixels
 # (padding to align to a multiple of 4 bytes)
-# Unicode:
+# Long:
 # 	0: uint24: second character codepoint
 # 	3: int8: kerning in pixels

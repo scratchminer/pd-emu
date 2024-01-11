@@ -46,7 +46,7 @@ class PDEmulator:
 		
 		self.display = pg.display.set_mode(size=(400, 240), flags=pg.SCALED)
 		self.reset()
-		
+	
 	def reset(self):
 		self.call_update_lock = Lock()
 		self.newline = "\n"

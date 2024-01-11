@@ -19,7 +19,7 @@ PDZ_FILE_NONE = 0
 PDZ_FILE_LUABYTECODE = 1
 PDZ_FILE_IMAGE = 2
 PDZ_FILE_IMAGETABLE = 3
-PDZ_FILE_VIDEO = 4
+# PDZ_FILE_UNUSED = 4
 PDZ_FILE_AUDIO = 5
 PDZ_FILE_STRINGS = 6
 PDZ_FILE_FONT = 7
@@ -41,8 +41,6 @@ class PDZipEntry:
 			self.data = PDImageFile(b"\0\0\0\0" + data, skip_magic=True)
 		elif filetype == PDZ_FILE_IMAGETABLE:
 			self.data = PDImageTableFile(b"\0\0\0\0" + data, skip_magic=True)
-		elif filetype == PDZ_FILE_VIDEO:
-			self.data = PDVideoFile(b"\0\0\0\0" + data, skip_magic=True)
 		elif filetype == PDZ_FILE_AUDIO:
 			self.data = PDAudioFile(data, skip_magic=True)
 		elif filetype == PDZ_FILE_STRINGS:
@@ -97,7 +95,7 @@ class PDZipEntry:
 					if not target.data.is_matrix:
 						for i in range(len(non_pdfile)):
 							with open(joinpath(path, f"{splitext(filename)[0]}-table-{i}{target.data.NONPD_FILE_EXT}"), "wb") as f:
-								f.write(non_pdfile[i].to_nonpdfile())
+								f.write(non_pdfile[i])
 					else:
 						with open(joinpath(path, f"{splitext(filename)[0]}-table-{target.data.image_table[0][0].stored_width}-{target.data.image_table[0][0].stored_height}{target.extension}"), "wb") as f:
 							f.write(non_pdfile)
@@ -165,7 +163,8 @@ if __name__ == "__main__":
 
 # FILE HEADER (length 16)
 # 0: char[12]: constant "Playdate PDZ"
-# (4 bytes of zeros)
+# 12: bitflags
+# 	flags & 0x40000000 = file is encrypted
 
 # FILE ENTRY
 # uint8: file bitflags
@@ -175,7 +174,7 @@ if __name__ == "__main__":
 # 			1 = Playdate Lua bytecode
 # 			2 = image (PDI)
 # 			3 = image table (PDT)
-# 			4 = video (PDV)
+# 			4 = unused, probably was the old PFT format
 # 			5 = audio (PDA)
 # 			6 = strings (PDS)
 # 			7 = font (PFT)

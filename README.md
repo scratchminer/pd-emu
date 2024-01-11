@@ -6,20 +6,18 @@ Yes, Panic already provides a piece of software called Playdate Simulator, but..
 - It can't run device builds of games written in C.
 - It doesn't allow communication via the simulated Playdate's USB port.
 
-I decided to try and fix this with new, _open-source_ software.
+I decided to try and fix this with new, *open-source* software.
 
 ## Getting the repo
-1. Choose your favorite Python package manager to install these:
-	- For dumping PNG/GIF images: [Pillow](https://github.com/python-pillow/Pillow)
-	- For graphics, sound, etc.: [pygame](https://github.com/pygame/pygame)
-2. Run `git clone --recursive https://github.com/scratchminer/pd-emu.git` to clone this repo and its submodules.
-3. `cd lupa && make` should build the forks of both Lupa and Lua without having to run `setup.py` directly.
+1. Run `git clone --recursive https://github.com/scratchminer/pd-emu.git` to clone this repo and its submodules.
+2. `pip install -r requirements.txt` should install all the dependencies except Lupa and Lua.
+3. `cd lupa && make` should build the forks of both Lupa and Lua without having to run `setup.py`.
 4. Use your favorite Python package manager to install the wheel in the `lupa/dist` directory.
 
 ## Running
 You can't actually run this emulator now (since I have yet to add the Playdate API).
 
-What you _can_ do now is dump Playdate applications (directories with a PDX extension) from the command line.
+What you *can* do now is dump Playdate applications (directories with a PDX extension) from the command line.
 
 ## Dumping Playdate applications/games
 To dump a PDX:
@@ -30,6 +28,6 @@ To dump a PDX:
 See [my fork of unluac](https://github.com/scratchminer/unluac) for instructions.
 
 ---
-2023 scratchminer
+2024 scratchminer
 
 Not affiliated with Panic at all, just a neat little side project I've been doing for a while.

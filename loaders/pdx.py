@@ -75,7 +75,7 @@ class PDXApplication:
 					if not target.is_matrix:
 						for i in range(len(non_pdfile)):
 							with open(joinpath(out_loc, f"{splitext(filename)[0]}-table-{i}{target.NONPD_FILE_EXT}"), "wb") as f:
-								f.write(non_pdfile[i].to_nonpdfile())
+								f.write(non_pdfile[i])
 					else:
 						with open(joinpath(out_loc, f"{splitext(filename)[0]}-table-{target.image_table[0][0].stored_width}-{target.image_table[0][0].stored_height}{target.NONPD_FILE_EXT}"), "wb") as f:
 							f.write(non_pdfile)

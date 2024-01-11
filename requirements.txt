@@ -1,0 +1,4 @@
+Cython>=0.29.32
+Pillow>=10.0.1
+pygame>=2.1.2
+qiling>=1.4.6
